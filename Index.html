@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سوق.كوم - متجر إلكتروني للشنط والإكسسوارات</title>
+    <script src="account.js"></script>
+    <script src="Cart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background: linear-gradient(135deg, #e0e7ff 0%, #f1f5f9 100%);
+        }
+        .rtl-support { direction: rtl; }
+        .product-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 12px 24px rgba(37,99,235,0.20);
+        }
+        .active-link {
+            color: #2563eb !important;
+            font-weight: 500;
+        }
+        .tag {
+            background-color: #f1f5f9;
+            color: #2563eb;
+            padding: 0.15rem 0.7rem;
+            border-radius: 999px;
+            margin-left: 0.25rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+            display: inline-block;
+        }
+        .tag-new {
+            background-color: #fbeed3;
+            color: #2563eb;
+        }
+        .tag-mostsold {
+            background-color: #fee2e2;
+            color: #dc2626;
+        }
+        .product-img-thumb.selected {
+            border: 2px solid #2563eb;
+        }
+        .modal-overlay {
+            background: rgba(0,0,0,0.45);
+        }
+        .logo-gradient {
+            background: linear-gradient(90deg,#2563eb 40%,#fbeed3 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: bold;
+            font-size: 2.4rem;
+            letter-spacing: 0.07em;
+        }
+        .primary-btn {
+            background: linear-gradient(90deg,#2563eb 70%, #fbeed3 100%);
+            color: white;
+            box-shadow: 0 2px 6px rgba(37,99,235,0.18);
+            font-weight: 500;
+            border: none;
+            transition: background 0.2s;
+        }
+        .primary-btn:hover {
+            background: linear-gradient(90deg,#1e40af 70%, #fbeed3 100%);
+        }
+        .input-style {
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            background: #f8fafc;
+            padding: 0.75rem 1rem;
+            font-size: 1.1rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .input-style:focus {
+            border-color: #2563eb;
+            background: #fff;
+        }
+        .payment-icon {
+            filter: grayscale(100%);
+            opacity: 0.7;
+            transition: all 0.3s ease;
+        }
+        .payment-icon:hover {
+            filter: grayscale(0%);
+            opacity: 1;
+        }
+        @media (max-width: 900px) {
+            .hero-slider { min-height: 320px; height: auto; padding-bottom: 24px;}
+            .logo-gradient { font-size: 1.9rem; }
+        }
+        .success-msg {
+            color: #16a34a;
+            font-weight: 600;
+            text-align: center;
+            margin-top: 1.4rem;
+            font-size: 1.12rem;
+        }
+        .error-msg {
+            color: #dc2626;
+            font-weight: 600;
+            text-align: center;
+            margin-top: 1.2rem;
+            font-size: 1.06rem;
+        }
+    </style>
+</head>
+<body class="rtl-support">
+
+    <!-- ============ الهيدر ============ -->
+    <header class="bg-white/80 shadow-xl rounded-b-2xl sticky top-0 z-40 backdrop-blur-xl">
+        <div class="container mx-auto px-4 py-3">
+            <div class="flex items-center justify-between">
+                <a id="logoLink" href="Index.html" class="flex items-center gap-2">
+                    <img src="https://i.ibb.co/kgdfjxd9/Png.png" alt="شعار سوق.كوم" class="w-12 h-12 drop-shadow-lg"/>
+                    <span class="logo-gradient">سوق.كوم</span>
+                </a>
+                <div class="flex items-center space-x-4 space-x-reverse">
+                    <a href="#" class="text-gray-700 hover:text-blue-600" id="userIcon">
+                        <i class="fas fa-user text-2xl"></i>
+                    </a>
+                    <!-- زر السلة وعدادها يتم توليدهم من Cart.js -->
+                </div>
+            </div>
+            <nav class="mt-5">
+                <ul class="flex space-x-8 space-x-reverse justify-center text-lg font-medium">
+                    <li><a href="Index.html" class="nav-link text-blue-600 active-link" data-page="Index.html">الرئيسية</a></li>
+                    <li><a href="Shop.html" class="nav-link text-gray-700 hover:text-blue-600" data-page="Shop.html">تسوق</a></li>
+                    <li><a href="AboutUs.html" class="nav-link text-gray-700 hover:text-blue-600" data-page="AboutUs.html">عنا</a></li>
+                    <li><a href="Contact.html" class="nav-link text-gray-700 hover:text-blue-600" data-page="Contact.html">تواصل معنا</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- ============ البانر الرئيسي ============ -->
+    <section class="h-96 flex items-center justify-center hero-slider relative rounded-xl overflow-hidden shadow-lg my-8 mx-4"
+        style="background: linear-gradient(135deg, rgba(37,99,235,0.12) 60%, rgba(251,238,211,0.09) 100%), url('https://st3.depositphotos.com/6010472/18845/i/450/depositphotos_188455475-stock-photo-flat-lay-female-fashion-accessories.jpg'); background-size:cover; background-position:center;">
+        <div class="absolute inset-0 bg-gradient-to-br from-blue-700/40 via-white/10 to-yellow-100/30"></div>
+        <div class="relative z-10 text-center px-4">
+            <h2 class="text-5xl font-bold mb-4 text-white drop-shadow-xl">أحدث تشكيلة شنط وإكسسوارات</h2>
+            <p class="text-2xl mb-6 text-white/90">اكتشف مجموعتنا المميزة من المنتجات عالية الجودة</p>
+            <a href="Shop.html" class="primary-btn px-8 py-3 rounded-lg font-medium text-xl">تسوق الآن</a>
+        </div>
+    </section>
+
+    <!-- ============ المنتجات المميزة ============ -->
+    <section class="py-12 bg-white/80 rounded-2xl mx-4 shadow-md">
+        <div class="container mx-auto px-4">
+            <h2 class="text-4xl font-bold text-blue-800 mb-8 text-center drop-shadow">منتجاتنا المميزة</h2>
+            <div id="featuredProducts" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+                <!-- المنتجات تولد ديناميكياً بالكود -->
+            </div>
+            <div class="text-center mt-8">
+                <a href="Shop.html" class="primary-btn inline-block px-8 py-3 rounded-lg font-medium text-lg">عرض جميع المنتجات</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============ تواصل معنا ============ -->
+    <section class="py-12 bg-gradient-to-br from-blue-100 via-white to-blue-50 rounded-2xl mx-4 mt-10 shadow-md">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold text-blue-800 mb-8 text-center">تواصل معنا</h2>
+            <div class="max-w-2xl mx-auto">
+                <form class="space-y-6" id="contactForm">
+                    <div>
+                        <label class="block mb-2 font-medium text-gray-700" for="name">الاسم الكامل</label>
+                        <input type="text" id="name" name="name" class="input-style w-full" placeholder="اكتب اسمك هنا" required>
+                    </div>
+                    <div>
+                        <label class="block mb-2 font-medium text-gray-700" for="email">البريد الإلكتروني</label>
+                        <input type="email" id="email" name="email" class="input-style w-full" placeholder="example@email.com" required>
+                    </div>
+                    <div>
+                        <label class="block mb-2 font-medium text-gray-700" for="message">رسالتك</label>
+                        <textarea id="message" name="message" rows="5" class="input-style w-full" placeholder="اكتب رسالتك أو استفسارك هنا" required></textarea>
+                    </div>
+                    <button type="submit" class="primary-btn px-8 py-3 rounded-lg text-lg flex items-center gap-2 mx-auto">
+                        <i class="fas fa-paper-plane"></i>
+                        إرسال الرسالة
+                    </button>
+                </form>
+                <div id="successMsg" class="hidden text-green-600 text-center mt-6 font-semibold"></div>
+            </div>
+            <div class="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+                <div class="bg-blue-50 rounded-lg p-6 shadow-sm">
+                    <i class="fas fa-envelope text-3xl text-blue-600 mb-4"></i>
+                    <h3 class="text-xl font-bold mb-2">البريد الإلكتروني</h3>
+                    <p class="text-gray-600 select-all">souqdotcom0@gmail.com</p>
+                </div>
+                <div class="bg-blue-50 rounded-lg p-6 shadow-sm">
+                    <i class="fas fa-phone-alt text-3xl text-blue-600 mb-4"></i>
+                    <h3 class="text-xl font-bold mb-2">الهاتف</h3>
+                    <p class="text-gray-600 select-all">218916773527+</p>
+                </div>
+                <div class="bg-blue-50 rounded-lg p-6 shadow-sm">
+                    <i class="fas fa-map-marker-alt text-3xl text-blue-600 mb-4"></i>
+                    <h3 class="text-xl font-bold mb-2">العنوان</h3>
+                    <p class="text-gray-600">طرابلس، ليبيا</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- نافذة سياسة الخصوصية -->
+    <div id="privacyModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg p-8 w-full max-w-2xl relative">
+            <button onclick="closePrivacy()" class="absolute left-4 top-4 text-gray-500 hover:text-gray-700 text-xl"><i class="fas fa-times"></i></button>
+            <h3 class="text-2xl font-bold text-gray-800 mb-4 text-center">سياسة الخصوصية</h3>
+            <div class="text-gray-700 leading-relaxed max-h-[60vh] overflow-y-auto" dir="rtl">
+                <pre>📑 سياسة الخصوصية
+
+نحن في موقع سوق.كوم نحرص على حماية خصوصية مستخدمينا. باستخدامك لموقعنا، فإنك توافق على سياسة الخصوصية التالية:
+
+1. المعلومات التي نجمعها
+
+* عند التسجيل أو الشراء، قد نطلب منك إدخال بريدك الإلكتروني أو معلومات أخرى للتواصل.
+
+2. كيفية استخدام المعلومات
+
+* نستخدم معلوماتك لتقديم الخدمات وتحسين تجربة المستخدم.
+* قد نرسل لك رسائل بريد إلكتروني بخصوص طلباتك أو تحديثات مهمة.
+
+3. مشاركة المعلومات
+
+* نحن لا نبيع أو نؤجر معلوماتك الشخصية لأي طرف ثالث.
+* قد نشارك المعلومات فقط مع مزودي الخدمات الموثوقين (مثل شركات الشحن والدفع) لإتمام طلبك.
+
+4. حماية البيانات
+
+* نستخدم تدابير أمنية لحماية بياناتك من الوصول غير المصرح به.
+
+5. التعديلات
+
+* قد نقوم بتحديث سياسة الخصوصية من وقت لآخر، وسيتم نشر أي تعديل على هذه الصفحة.
+</pre>
+            </div>
+        </div>
+    </div>
+    <!-- نافذة شروط الاستخدام -->
+    <div id="termsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg p-8 w-full max-w-2xl relative">
+            <button onclick="closeTerms()" class="absolute left-4 top-4 text-gray-500 hover:text-gray-700 text-xl"><i class="fas fa-times"></i></button>
+            <h3 class="text-2xl font-bold text-gray-800 mb-4 text-center">شروط الاستخدام</h3>
+            <div class="text-gray-700 leading-relaxed max-h-[60vh] overflow-y-auto" dir="rtl">
+                <pre>📜 شروط الاستخدام
+
+باستخدامك لموقع سوق.كوم، فإنك توافق على الشروط التالية:
+
+1. استخدام الموقع:
+
+يجب أن يكون عمرك 18 سنة أو أكثر، أو أن تستخدم الموقع تحت إشراف ولي أمر.
+
+توافق على استخدام الموقع فقط للأغراض القانونية وعدم إساءة استخدامه.
+
+2. المنتجات والأسعار:
+
+جميع المنتجات المعروضة قابلة للتوافر، وقد تتغير الأسعار في أي وقت دون إشعار مسبق.
+
+قد تختلف صور المنتجات المعروضة قليلاً عن الواقع.
+
+3. الدفع والشحن:
+
+عند إتمام الطلب، يلتزم العميل بدفع التكلفة الكاملة للمنتج والشحن (إن وجد).
+
+نحن غير مسؤولين عن أي تأخير ناتج عن شركات الشحن أو الظروف الطارئة.
+
+4. الملكية الفكرية:
+
+جميع محتويات الموقع (شعارات، نصوص، صور، أكواد) هي ملك لـ سوق.كوم، ولا يجوز نسخها أو استخدامها بدون إذن خطي مسبق.
+
+5. التعديلات:
+
+يحق لنا تعديل سياسة الخصوصية أو شروط الاستخدام في أي وقت، وسيتم نشر التعديلات على هذه الصفحة.
+</pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة تفاصيل المنتج -->
+    <div id="productModal" class="fixed inset-0 modal-overlay flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg p-6 w-full max-w-2xl relative max-h-[90vh] overflow-y-auto">
+            <button onclick="closeProductModal()" class="absolute left-4 top-4 text-gray-500 hover:text-gray-700 text-xl">
+                <i class="fas fa-times"></i>
+            </button>
+            <div id="productDetails"></div>
+        </div>
+    </div>
+
+    <!-- ============ الفوتر ============ -->
+    <footer class="bg-gradient-to-br from-blue-900 via-blue-700 to-[#fbeed3] text-white py-12 mt-12 rounded-t-2xl">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                    <h3 class="text-xl font-bold mb-4">سوق.كوم</h3>
+                    <p class="text-gray-200">متجر إلكتروني متخصص في بيع الشنط والإكسسوارات عالية الجودة للرجال والنساء.</p>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold mb-4">روابط سريعة</h3>
+                    <ul class="space-y-2">
+                        <li><a href="Index.html" class="nav-link text-blue-600 active-link" data-page="Index.html">الرئيسية</a></li>
+                        <li><a href="AboutUs.html" class="nav-link text-gray-200 hover:text-white" data-page="AboutUs.html">عنا</a></li>
+                        <li><a href="Shop.html" class="nav-link text-gray-200 hover:text-white" data-page="Shop.html">المنتجات</a></li>
+                        <li><a href="#" class="privacy-link text-gray-200 hover:text-white">سياسة الخصوصية</a></li>
+                        <li><a href="#" class="terms-link text-gray-200 hover:text-white">شروط الاستخدام</a></li>
+                        <li><a href="Contact.html" class="nav-link text-gray-200 hover:text-white" data-page="Contact.html">تواصل معنا</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold mb-4">تابعنا</h3>
+                    <div class="flex space-x-4 space-x-reverse mb-4">
+                         <a href="https://www.facebook.com/share/1CEyEf8f9P/?mibextid=wwXIfr" target="_blank" class="text-gray-200 hover:text-white text-2xl"><i class="fab fa-facebook"></i></a>
+                       
+                        <a href="https://www.instagram.com/souqdotcom0?igsh=MXBucmxjMWptcWxoOA%3D%3D&utm_source=qr
+" target="_blank" class="text-gray-200 hover:text-white text-2xl"><i class="fab fa-instagram"></i></a>
+                       <a href="https://www.tiktok.com/@souqdotcom?_t=ZM-8zQ6bPBXfRG&_r=1" target="_blank" class="text-gray-200 hover:text-white text-2xl"><i class="fab fa-tiktok"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-blue-400 mt-8 pt-8 text-center text-gray-300">
+                <p>© 2025 سوق.كوم. جميع الحقوق محفوظة.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        let products = [];
+        let modalProductId = null;
+
+        // جلب المنتجات من قاعدة البيانات
+        async function fetchFeaturedProducts() {
+            try {
+                const res = await fetch("https://back-end-klkg.onrender.com/api/products?sort=mostsold");
+                products = await res.json();
+                renderFeaturedProducts();
+            } catch (err) {
+                products = [];
+                document.getElementById('featuredProducts').innerHTML = '<div class="text-center text-red-500">تعذر جلب المنتجات.</div>';
+            }
+        }
+
+        function renderFeaturedProducts() {
+            const grid = document.getElementById('featuredProducts');
+            grid.innerHTML = '';
+            products.slice(0, 4).forEach(product => {
+                let extraTags = '';
+                if (product.sold > 30) extraTags += `<span class="tag tag-mostsold">الأكثر مبيعاً</span>`;
+                if (Date.now() - product.added <= 1000 * 60 * 60 * 24 * 14) extraTags += `<span class="tag tag-new">جديد</span>`;
+                grid.innerHTML += `
+                    <div class="product-card bg-white rounded-lg shadow-lg overflow-hidden transition duration-300 flex flex-col cursor-pointer border-2 border-blue-50 hover:border-blue-400"
+                        onclick="openProductModal('${product._id}')">
+                        <div class="relative">
+                            <img src="${product.images[0]}" alt="${product.name}" class="w-full h-56 object-cover">
+                            <div class="absolute top-2 left-2 flex flex-col gap-1">${extraTags}</div>
+                        </div>
+                        <div class="p-4 flex-1 flex flex-col">
+                            <h3 class="text-xl font-semibold text-blue-800 mb-2">${product.name}</h3>
+                            <div class="mb-2 flex flex-wrap gap-1">
+                                ${product.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                            </div>
+                            <p class="text-gray-600 mb-4 flex-1">${product.desc}</p>
+                            <div class="flex items-center justify-between">
+                                <span class="text-blue-600 font-bold">${product.price} د.ل</span>
+                                <button class="primary-btn px-4 py-2 rounded-lg add-to-cart-btn" data-id="${product._id}" data-qty="1">أضف للسلة</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
+                btn.onclick = function(e) {
+                    e.stopPropagation();
+                    addToCart(btn.getAttribute('data-id'), parseInt(btn.getAttribute('data-qty'), 10));
+                };
+            });
+        }
+
+        function openProductModal(productId) {
+            modalProductId = productId;
+            const product = products.find(p => p._id === productId);
+            if (!product) return;
+            let thumbs = '';
+            product.images.forEach((img, idx) => {
+                thumbs += `<img src="${img}" class="w-16 h-16 object-cover rounded product-img-thumb ${idx === 0 ? 'selected' : ''}" onclick="changeProductImg(${idx})">`;
+            });
+            const stars = Array.from({length: 5}, (_,i) => `<i class="fa${i < Math.round(product.rating) ? 's' : 'r'} fa-star text-yellow-400"></i>`).join('');
+            const tags = product.tags.map(tag => `<span class="tag">${tag}</span>`).join('');
+            let extraTags = '';
+            if (product.sold > 30) extraTags += `<span class="tag tag-mostsold">الأكثر مبيعاً</span>`;
+            if (product.added > Date.now() - 1000 * 60 * 60 * 24 * 14) extraTags += `<span class="tag tag-new">جديد</span>`;
+            document.getElementById('productDetails').innerHTML = `
+                <div class="flex flex-col md:flex-row gap-8">
+                    <div class="flex flex-col items-center gap-4 flex-shrink-0">
+                        <img id="mainProdImg" src="${product.images[0]}" class="w-64 h-64 object-cover rounded-lg border">
+                        <div class="flex gap-2 mt-2">${thumbs}</div>
+                    </div>
+                    <div class="flex-1 flex flex-col">
+                        <h3 class="text-2xl font-bold text-blue-800 mb-2">${product.name}</h3>
+                        <div class="mb-2 flex flex-wrap gap-1">${tags}${extraTags}</div>
+                        <p class="text-gray-700 mb-2">${product.desc}</p>
+                        <div class="flex items-center gap-2 mb-1">
+                            ${stars}
+                            <span class="text-sm text-gray-600 ml-2">(${product.rating} | ${product.reviews} تقييم)</span>
+                        </div>
+                        <div class="mb-2 text-gray-600 text-sm">
+                            <span>عدد القطع المتبقية: <span class="font-bold text-blue-700">${product.stock}</span></span>
+                        </div>
+                        <div class="mb-3 text-2xl font-bold text-blue-700">${product.price} د.ل</div>
+                        <div class="flex items-center gap-2 mb-2">
+                            <label for="prodQty" class="text-gray-700">الكمية:</label>
+                            <input id="prodQty" type="number" min="1" max="${product.stock}" value="1" class="w-16 border text-center rounded py-1 px-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <button onclick="addToCartAndClose('${product._id}', document.getElementById('prodQty').value)" class="primary-btn w-full py-3 rounded-lg font-medium text-lg">أضف للسلة</button>
+                    </div>
+                </div>
+            `;
+            document.querySelectorAll('.product-img-thumb').forEach((thumb, idx) => {
+                thumb.onclick = function() { changeProductImg(idx); }
+            });
+            document.getElementById('productModal').classList.remove('hidden');
+        }
+        function changeProductImg(idx) {
+            const product = products.find(p => p._id === modalProductId);
+            if (!product) return;
+            document.getElementById('mainProdImg').src = product.images[idx];
+            document.querySelectorAll('.product-img-thumb').forEach((thumb, i) => {
+                thumb.classList.toggle('selected', i === idx);
+            });
+        }
+        function closeProductModal() {
+            document.getElementById('productModal').classList.add('hidden');
+            modalProductId = null;
+        }
+        function addToCartAndClose(productId, qty=1) {
+            qty = parseInt(qty, 10);
+            const product = products.find(p => p._id === productId);
+            if (!product) return;
+            if (qty > product.stock) {
+                alert("الكمية المطلوبة أكثر من المتوفر في المخزون!");
+                return;
+            }
+            addToCart(productId, qty);
+            closeProductModal();
+        }
+
+        // سياسة الخصوصية وشروط الاستخدام
+        document.querySelectorAll('.privacy-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                document.getElementById('privacyModal').classList.remove('hidden');
+            });
+        });
+        function closePrivacy() {
+            document.getElementById('privacyModal').classList.add('hidden');
+        }
+        document.querySelectorAll('.terms-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                document.getElementById('termsModal').classList.remove('hidden');
+            });
+        });
+        function closeTerms() {
+            document.getElementById('termsModal').classList.add('hidden');
+        }
+
+        // فتح مودال الحساب
+        document.getElementById('userIcon').addEventListener('click', function(e) {
+            e.preventDefault();
+            openModal();
+        });
+
+        // ارسال الرسالة للباك اند
+        document.getElementById('contactForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const message = document.getElementById('message').value.trim();
+            const successMsg = document.getElementById('successMsg');
+
+            try {
+                const res = await fetch("https://back-end-klkg.onrender.com/api/contact", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ name, email, message })
+                });
+
+                const data = await res.json();
+                if (res.ok) {
+                    successMsg.textContent = data.message || "تم إرسال رسالتك بنجاح!";
+                    successMsg.classList.remove("hidden", "text-red-600");
+                    successMsg.classList.add("text-green-600");
+                    document.getElementById('contactForm').reset();
+                } else {
+                    successMsg.textContent = data.message || "تعذر إرسال الرسالة.";
+                    successMsg.classList.remove("hidden", "text-green-600");
+                    successMsg.classList.add("text-red-600");
+                }
+            } catch (err) {
+                successMsg.textContent = "خطأ في الاتصال بالخادم.";
+                successMsg.classList.remove("hidden", "text-green-600");
+                successMsg.classList.add("text-red-600");
+            }
+
+            setTimeout(() => {
+                successMsg.classList.add("hidden");
+            }, 6000);
+        });
+
+        // عند تحميل الصفحة
+        document.addEventListener('DOMContentLoaded', function() {
+            fetchFeaturedProducts();
+            updateCartCount();
+        });
+    </script>
+</body>
+</html>

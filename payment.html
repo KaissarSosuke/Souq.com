@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>إتمام الدفع | سوق.كوم</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap');
+    body {
+      font-family: 'Tajawal', sans-serif;
+      background: linear-gradient(120deg,#f8fafc 0%,#dbeafe 100%);
+      min-height: 100vh;
+    }
+    .main-card {
+      background: #fff;
+      border-radius: 2rem;
+      box-shadow: 0 8px 32px #2563eb17;
+      overflow: hidden;
+    }
+    .gradient-header {
+      background: linear-gradient(90deg,#2563eb 70%, #fbeed3 100%);
+      color: #fff;
+      padding: 1.5rem 2rem;
+      border-radius: 1.8rem 1.8rem 0 0;
+      font-size: 2.3rem;
+      font-weight: bold;
+      text-align: center;
+      letter-spacing: .07em;
+    }
+    .order-summary-card {
+      border-radius: 1.2rem;
+      background: linear-gradient(120deg, #f1f5f9 80%, #dbeafe 100%);
+      box-shadow: 0 1px 6px #2563eb13;
+    }
+    .order-summary-title {
+      font-size: 1.4rem;
+      font-weight: bold;
+      color: #2563eb;
+      padding-bottom: .75rem;
+      border-bottom: 2px solid #dbeafe;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+    .order-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      border-bottom: 1px solid #e0e7ef;
+      padding: 1.1rem 0;
+    }
+    .order-item:last-child { border-bottom: none }
+    .order-img {
+      width: 62px;
+      height: 62px;
+      object-fit: cover;
+      border-radius: .95rem;
+      border: 2px solid #dbeafe;
+      background: #fff;
+    }
+    .order-item-desc {
+      flex: 1;
+      min-width: 0;
+    }
+    .order-item-title {
+      font-weight: bold;
+      color: #1e293b;
+      font-size: 1.1rem;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
+      margin-bottom: .3rem;
+    }
+    .order-item-meta {
+      color: #2563eb;
+      font-weight: 500;
+      font-size: 1rem;
+    }
+    .order-item-price {
+      font-weight: bold;
+      color: #2563eb;
+      white-space: nowrap;
+      font-size: 1.13rem;
+    }
+    .order-total-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 1.5rem;
+      font-size: 1.3rem;
+      font-weight: bold;
+      color: #1e293b;
+      background: #e0e7ef;
+      border-radius: .7rem;
+      padding: .8rem 1.2rem;
+    }
+    .form-title {
+      font-size: 1.4rem;
+      font-weight: bold;
+      color: #2563eb;
+      margin-bottom: 1.2rem;
+      text-align: center;
+    }
+    .pay-form label {
+      color: #334155;
+      font-weight: 500;
+      margin-bottom: .35rem;
+      display: block;
+    }
+    .pay-form input,
+    .pay-form textarea {
+      background: #f8fafc;
+      border: 1.5px solid #d1d5db;
+      border-radius: .7rem;
+      padding: .7rem 1.1rem;
+      font-size: 1.07rem;
+      outline: none;
+      margin-bottom: 1rem;
+      width: 100%;
+      transition: border-color 0.2s;
+    }
+    .pay-form input:focus,
+    .pay-form textarea:focus {
+      border-color: #2563eb;
+      background: #fff;
+    }
+    .pay-form textarea { resize: vertical; min-height: 48px; max-height: 110px; }
+    .submit-btn {
+      background: linear-gradient(90deg,#2563eb 70%, #fbeed3 100%);
+      color: #fff;
+      font-weight: bold;
+      font-size: 1.14rem;
+      padding: .85rem 0;
+      border-radius: .9rem;
+      border: none;
+      width: 100%;
+      margin-top: .5rem;
+      transition: background .2s;
+      box-shadow: 0 2px 8px #2563eb18;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: .7rem;
+    }
+    .submit-btn:disabled {
+      background: #a5b4fc;
+      cursor: not-allowed;
+      color: #fff;
+    }
+    .success-msg {
+      color: #16a34a;
+      font-weight: 600;
+      text-align: center;
+      margin-top: 1.4rem;
+      font-size: 1.12rem;
+    }
+    .error-msg {
+      color: #dc2626;
+      font-weight: 600;
+      text-align: center;
+      margin-top: 1.2rem;
+      font-size: 1.06rem;
+    }
+    @media (max-width: 900px) {
+      .main-card { border-radius: 0; }
+    }
+    @media (max-width: 768px) {
+      .main-card { border-radius: 0; }
+      .main-content { flex-direction: column-reverse; }
+      .order-summary-col, .form-col { width: 100%!important; }
+      .order-summary-card { margin-bottom: 2.5rem;}
+    }
+  .home-btn {
+            position: absolute;
+            top: 26px;
+            right: 32px;
+            z-index: 50;
+            background: #f8fafc;
+            border-radius: 999px;
+            box-shadow: 0 2px 6px #2563eb22;
+            padding: 0.65rem 0.86rem;
+            color: #2563eb;
+            font-size: 1.5rem;
+            border: 2px solid #e0e7ff;
+            transition: background 0.18s, color 0.18s;
+        }
+        .home-btn:hover {
+            background: #2563eb;
+            color: #fff;
+        }
+        @media (max-width: 600px) {
+            .home-btn { right: 12px; top: 14px; font-size: 1.2rem; padding: 0.5rem 0.7rem;}
+        }
+    </style>
+</head>
+<body>
+    <a href="Index.html" class="home-btn" title="الصفحة الرئيسية"><i class="fas fa-home"></i></a>
+  <!-- Header -->
+  <header>
+    <div class="gradient-header">
+      
+      إتمام الطلب والدفع
+    </div>
+  </header>
+  <main class="flex justify-center py-10 px-2">
+    <div class="main-card max-w-5xl w-full p-2 md:p-6">
+      <div class="flex main-content gap-10 md:gap-14 lg:gap-20">
+        <!-- Order Summary (Right on mobile, Left on desktop) -->
+        <div class="order-summary-col w-[44%] min-w-[300px] max-w-[420px] md:order-2">
+          <div class="order-summary-card p-6">
+            <div class="order-summary-title">
+              <i class="fas fa-shopping-basket mr-2"></i>
+              ملخص طلبك
+            </div>
+            <div id="cartSummary"></div>
+            <div class="order-total-row" id="orderTotalRow">
+              <span>الإجمالي الكلي:</span>
+              <span id="totalPrice">0 د.ل</span>
+            </div>
+          </div>
+        </div>
+        <!-- Delivery Form (Left on mobile, Right on desktop) -->
+        <div class="form-col flex-1 md:order-1">
+          <div class="form-title">
+            <i class="fas fa-map-marker-alt mr-1"></i>
+            بيانات التوصيل
+          </div>
+          <form id="orderForm" class="pay-form">
+            <label for="city">المدينة <span class="text-red-600">*</span></label>
+            <input type="text" name="city" id="city" required placeholder="مثال: طرابلس">
+            
+            <label for="district">الحي <span class="text-red-600">*</span></label>
+            <input type="text" name="district" id="district" required placeholder="مثال: حي الأندلس">
+            
+            <label for="street">الشارع <span class="text-red-600">*</span></label>
+            <input type="text" name="street" id="street" required placeholder="اسم الشارع">
+            
+            <label for="houseNumber">رقم المنزل <span class="text-red-600">*</span></label>
+            <input type="text" name="houseNumber" id="houseNumber" required placeholder="رقم المنزل أو الشقة">
+            
+            <label for="notes">ملاحظات إضافية</label>
+            <textarea name="notes" id="notes" placeholder="أي ملاحظات للتوصيل (اختياري)"></textarea>
+            
+            <label for="phone">رقم الهاتف <span class="text-red-600">*</span></label>
+            <input type="tel" name="phone" id="phone" required placeholder="09XXXXXXXX">
+            
+            <button type="submit" id="submitOrderBtn" class="submit-btn mt-2">
+              <i class="fas fa-check-circle"></i>
+              تأكيد الطلب
+            </button>
+            <div id="orderSuccess" class="success-msg hidden"></div>
+            <div id="orderError" class="error-msg hidden"></div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </main>
+  <script>
+    // جلب السلة من الباك اند
+    let userCart = [];
+    let total = 0;
+    async function fetchCartForPayment() {
+      try {
+        const resProfile = await fetch("https://back-end-klkg.onrender.com/api/profile", { credentials: "include" });
+        if (resProfile.status !== 200) {
+          window.location.href = "signUp.html";
+          return;
+        }
+        const profile = await resProfile.json();
+        const res = await fetch("https://back-end-klkg.onrender.com/api/user-cart/", { credentials: "include" });
+        let allCarts = [];
+        if (res.ok) allCarts = await res.json();
+        const cartForUser = Array.isArray(allCarts)
+          ? allCarts.find(c => c.email === profile.email)
+          : null;
+        userCart = cartForUser && cartForUser.cart ? cartForUser.cart : [];
+        renderCartSummary();
+      } catch {
+        userCart = [];
+        renderCartSummary();
+      }
+    }
+    function renderCartSummary() {
+      const div = document.getElementById('cartSummary');
+      if (!userCart.length) {
+        div.innerHTML = '<div class="text-center text-gray-400 text-lg py-8">سلتك فارغة.</div>';
+        document.getElementById('totalPrice').textContent = '0 د.ل';
+        document.getElementById('submitOrderBtn').disabled = true;
+        return;
+      }
+      let html = '';
+      total = 0;
+      userCart.forEach(item => {
+        const price = (parseInt(item.price) || 0) * (parseInt(item.qty) || 0);
+        html += `
+          <div class="order-item">
+            <img src="${item.images && item.images[0] ? item.images[0] : ''}" class="order-img" alt="${item.name || ''}">
+            <div class="order-item-desc">
+              <div class="order-item-title">${item.name || ''}</div>
+              <div class="order-item-meta">${item.price} د.ل × ${item.qty}</div>
+            </div>
+            <div class="order-item-price">${price} د.ل</div>
+          </div>
+        `;
+        total += price;
+      });
+      div.innerHTML = html;
+      document.getElementById('totalPrice').textContent = total + ' د.ل';
+      document.getElementById('submitOrderBtn').disabled = false;
+    }
+
+    document.addEventListener('DOMContentLoaded', fetchCartForPayment);
+
+    // إرسال الطلب
+    document.getElementById('orderForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      document.getElementById('orderError').classList.add('hidden');
+      document.getElementById('orderSuccess').classList.add('hidden');
+      if (!userCart.length) {
+        document.getElementById('orderError').textContent = "سلتك فارغة!";
+        document.getElementById('orderError').classList.remove('hidden');
+        return;
+      }
+      const form = e.target;
+      const data = {
+        address: {
+          city: form.city.value.trim(),
+          district: form.district.value.trim(),
+          street: form.street.value.trim(),
+          houseNumber: form.houseNumber.value.trim(),
+          notes: form.notes.value.trim(),
+        },
+        phone: form.phone.value.trim(),
+      };
+      // تحقق من رقم الهاتف (ليبي تقليدي)
+      if (!/^09[0-9]{8}$/.test(data.phone)) {
+        document.getElementById('orderError').textContent = "رقم الهاتف غير صحيح. يجب أن يكون 09XXXXXXXX";
+        document.getElementById('orderError').classList.remove('hidden');
+        return;
+      }
+      document.getElementById('submitOrderBtn').disabled = true;
+      try {
+        const res = await fetch("https://back-end-klkg.onrender.com/api/payment", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify(data)
+        });
+        const result = await res.json();
+        if (res.ok) {
+          document.getElementById('orderSuccess').textContent = "تم إرسال الطلب بنجاح! سنتواصل معك قريباً.";
+          document.getElementById('orderSuccess').classList.remove('hidden');
+          await fetch("https://back-end-klkg.onrender.com/api/user-cart/clear", {
+            method: "POST",
+            credentials: "include"
+          });
+          setTimeout(() => { window.location.href = "Index.html"; }, 2600);
+        } else {
+          document.getElementById('orderError').textContent = result.message || "حدث خطأ أثناء إرسال الطلب";
+          document.getElementById('orderError').classList.remove('hidden');
+        }
+      } catch {
+        document.getElementById('orderError').textContent = "تعذر الاتصال بالخادم.";
+        document.getElementById('orderError').classList.remove('hidden');
+      }
+      document.getElementById('submitOrderBtn').disabled = false;
+    });
+  </script>
+</body>
+</html>

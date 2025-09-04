@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>طلباتي | سوق.كوم</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap');
+    body {
+      font-family: 'Tajawal', sans-serif;
+      background: linear-gradient(120deg,#f8fafc 0%,#dbeafe 100%);
+      min-height: 100vh;
+    }
+    .main-card {
+      background: #fff;
+      border-radius: 2rem;
+      box-shadow: 0 8px 32px #2563eb17;
+      overflow: hidden;
+    }
+    .gradient-header {
+      background: linear-gradient(90deg,#2563eb 70%, #fbeed3 100%);
+      color: #fff;
+      padding: 1.5rem 2rem;
+      border-radius: 1.8rem 1.8rem 0 0;
+      font-size: 2.1rem;
+      font-weight: bold;
+      text-align: center;
+      letter-spacing: .07em;
+    }
+    .order-box {
+      background: linear-gradient(120deg, #f1f5f9 80%, #dbeafe 100%);
+      border-radius: 1.3rem;
+      box-shadow: 0 1px 6px #2563eb13;
+      margin-bottom: 2.5rem;
+      padding: 2rem 1.5rem;
+      position: relative;
+      transition: box-shadow 0.17s;
+    }
+    .order-box:hover {
+      box-shadow: 0 6px 24px #2563eb26;
+    }
+    .order-status {
+      font-size: 1.1rem;
+      font-weight: 700;
+      padding: 0.35em 1.2em;
+      border-radius: 0.8em;
+      background: #f1f5f9;
+      display: inline-block;
+      margin-bottom: .8rem;
+      letter-spacing: 0.01em;
+    }
+    .status-pending    { color: #fbbf24; background: #fef9c3;}
+    .status-processing { color: #2563eb; background: #e0e7ff;}
+    .status-shipping   { color: #0ea5e9; background: #cffafe;}
+    .status-delivered  { color: #16a34a; background: #dcfce7;}
+    .status-canceled   { color: #dc2626; background: #fee2e2;}
+    .status-failed     { color: #b91c1c; background: #fee2e2;}
+    .order-products-list {
+      margin-bottom: 1.3rem;
+      border-radius: 1rem;
+      overflow: hidden;
+      background: #fff;
+      box-shadow: 0 1px 4px #2563eb0d;
+    }
+    .order-product {
+      display: flex;
+      align-items: center;
+      gap: 1.2rem;
+      border-bottom: 1px solid #e5e7eb;
+      padding: 1.1rem 1.2rem;
+      font-size: 1.09rem;
+      position: relative;
+      flex-wrap: wrap;
+    }
+    .order-product:last-child { border-bottom: none; }
+    .order-product-img {
+      width: 62px;
+      height: 62px;
+      object-fit: cover;
+      border-radius: .95rem;
+      border: 2px solid #dbeafe;
+      background: #fff;
+    }
+    .order-product-title {
+      font-weight: bold;
+      color: #1e293b;
+      font-size: 1.09rem;
+      margin-bottom: .1rem;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
+      max-width: 180px;
+    }
+    .order-product-meta {
+      color: #2563eb;
+      font-weight: 500;
+      font-size: .99rem;
+    }
+    .order-product-price {
+      font-weight: 700;
+      color: #2563eb;
+      white-space: nowrap;
+      font-size: 1.08rem;
+      margin-right: auto;
+    }
+    .order-summary-row {
+      font-size: 1.12rem;
+      margin-bottom: .5rem;
+    }
+    .order-summary-label { color: #2563eb; font-weight: bold;}
+    .order-summary-value { font-weight: bold;}
+    .cancel-btn {
+      background: linear-gradient(90deg,#ef4444 70%, #fee2e2 100%);
+      color: #fff;
+      font-weight: bold;
+      border: none;
+      border-radius: .7rem;
+      padding: .7rem 1.8rem;
+      font-size: 1.08rem;
+      box-shadow: 0 1px 8px #dc262633;
+      transition: background .19s;
+      margin-top: .6rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: .6em;
+      justify-content: center;
+    }
+    .cancel-btn:disabled {
+      background: #fca5a5;
+      color: #fff;
+      cursor: not-allowed;
+      opacity: 0.8;
+    }
+    .order-details {
+      font-size: .98rem;
+      color: #555;
+      margin-bottom: .7rem;
+      padding-right: .3rem;
+    }
+    .empty-orders {
+      color: #64748b;
+      font-size: 1.5rem;
+      font-weight: 600;
+      text-align: center;
+      margin-top: 3rem;
+      letter-spacing: .02em;
+    }
+    .modal-overlay {
+      background: rgba(0,0,0,0.45);
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .confirm-modal {
+      background: #fff;
+      border-radius: 1.1rem;
+      box-shadow: 0 8px 32px #0003;
+      width: 95%;
+      max-width: 410px;
+      padding: 2.5rem 2rem 2rem 2rem;
+      text-align: center;
+      position: relative;
+      animation: fadeIn .25s;
+    }
+    .confirm-modal .close-modal-btn {
+      position: absolute;
+      left: 1.2rem; top: 1.2rem;
+      background: none;
+      border: none;
+      font-size: 1.45rem;
+      color: #888;
+      cursor: pointer;
+      transition: color .19s;
+    }
+    .confirm-modal .close-modal-btn:hover { color: #dc2626; }
+    .confirm-modal .icon {
+      font-size: 3.3rem;
+      color: #ef4444;
+      margin-bottom: .7rem;
+    }
+    .confirm-modal .title {
+      font-size: 1.45rem;
+      font-weight: bold;
+      color: #1e293b;
+      margin-bottom: .8rem;
+      margin-top: 0.2em;
+    }
+    .confirm-modal .desc {
+      color: #555;
+      margin-bottom: 1.5rem;
+      font-size: 1.08rem;
+    }
+    .confirm-modal .btns {
+      display: flex;
+      gap: 1.1rem;
+      justify-content: center;
+      margin-top: .5rem;
+    }
+    .confirm-modal .btn {
+      font-weight: bold;
+      border-radius: .7rem;
+      padding: .72em 2.1em;
+      font-size: 1.08rem;
+      transition: background .17s;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 1px 8px #ddd6fe33;
+      outline: none;
+    }
+    .confirm-modal .btn-cancel {
+      background: #fff;
+      color: #2563eb;
+      border: 2px solid #2563eb;
+    }
+    .confirm-modal .btn-cancel:hover {
+      background: #f1f5f9;
+      color: #1e40af;
+      border: 2px solid #1e40af;
+    }
+    .confirm-modal .btn-confirm {
+      background: linear-gradient(90deg,#ef4444 70%, #fee2e2 100%);
+      color: #fff;
+      border: none;
+    }
+    .confirm-modal .btn-confirm:disabled {
+      background: #fca5a5;
+      color: #fff;
+      cursor: not-allowed;
+      opacity: 0.9;
+    }
+    @media (max-width: 700px) {
+      .main-card { border-radius: 0; }
+      .order-box { padding: .9rem 0.5rem }
+    }
+    .home-btn {
+      position: absolute;
+      top: 26px;
+      right: 32px;
+      z-index: 50;
+      background: #f8fafc;
+      border-radius: 999px;
+      box-shadow: 0 2px 6px #2563eb22;
+      padding: 0.65rem 0.86rem;
+      color: #2563eb;
+      font-size: 1.5rem;
+      border: 2px solid #e0e7ff;
+      transition: background 0.18s, color 0.18s;
+    }
+    .home-btn:hover {
+      background: #2563eb;
+      color: #fff;
+    }
+    @media (max-width: 600px) {
+      .home-btn { right: 12px; top: 14px; font-size: 1.2rem; padding: 0.5rem 0.7rem;}
+    }
+    .rating-stars i.fa-star {
+      font-size: 1.35em;
+      cursor: pointer;
+      margin-left: 1px;
+    }
+    .rating-note-area {
+      width: 100%;
+      margin-top: 4px;
+      margin-bottom: 6px;
+      border-radius: 0.6rem;
+      border: 1px solid #d1d5db;
+      background: #f8fafc;
+      padding: .55rem .9rem;
+      font-size: 1.04rem;
+      resize: vertical;
+    }
+    .rating-btn {
+      background: linear-gradient(90deg,#2563eb 70%, #fbeed3 100%);
+      color: #fff;
+      font-weight: 700;
+      font-size: 1.05rem;
+      border: none;
+      border-radius: .7rem;
+      padding: .5rem 1.4rem;
+      margin-bottom: 3px;
+      transition: background .18s;
+      cursor: pointer;
+      box-shadow: 0 1px 4px #2563eb22;
+    }
+    .rating-btn:disabled { background: #a5b4fc; color: #fff; cursor: not-allowed; }
+    .text-success { color: #16a34a; font-weight: bold; font-size: 1.06rem;}
+    .text-error { color: #dc2626; font-weight: bold; font-size: 1.05rem;}
+  </style>
+</head>
+<body>
+  <a href="Index.html" class="home-btn" title="الصفحة الرئيسية"><i class="fas fa-home"></i></a>
+  <!-- Header -->
+  <header>
+    <div class="gradient-header">
+      <i class="fas fa-bag-shopping mr-2"></i>
+      طلباتي
+    </div>
+  </header>
+  <main class="flex justify-center py-10 px-2">
+    <div class="main-card max-w-3xl w-full p-2 md:p-6">
+      <div id="ordersContainer"></div>
+    </div>
+  </main>
+  <!-- مودال التأكيد -->
+  <div id="cancelConfirmModal" class="modal-overlay hidden">
+    <div class="confirm-modal">
+      <button class="close-modal-btn" onclick="closeCancelModal()"><i class="fas fa-times"></i></button>
+      <div class="icon"><i class="fas fa-ban"></i></div>
+      <div class="title">تأكيد إلغاء الطلب</div>
+      <div class="desc">هل أنت متأكد أنك تريد إلغاء هذا الطلب؟<br>لن تتمكن من استعادته لاحقاً.</div>
+      <div class="btns">
+        <button class="btn btn-cancel" onclick="closeCancelModal()">تراجع</button>
+        <button class="btn btn-confirm" id="confirmCancelBtn"><i class="fas fa-check"></i> نعم، إلغاء</button>
+      </div>
+      <div id="cancelLoading" class="mt-3 text-blue-600 font-semibold hidden"><i class="fas fa-spinner fa-spin"></i> جاري الإلغاء...</div>
+      <div id="cancelError" class="mt-2 text-red-600 font-semibold hidden"></div>
+    </div>
+  </div>
+  <script>
+    function statusClass(status) {
+      switch(status) {
+        case "قيد الانتظار":    return "order-status status-pending";
+        case "جار التجهيز":     return "order-status status-processing";
+        case "جار التوصيل":     return "order-status status-shipping";
+        case "تم التوصيل":      return "order-status status-delivered";
+        case "ملغي":            return "order-status status-canceled";
+        case "فشل التوصيل":     return "order-status status-failed";
+        default:                return "order-status";
+      }
+    }
+
+    let userEmail = "";
+    let orders = [];
+    let cancelOrderId = null;
+    async function fetchUserOrders() {
+      try {
+        const resProfile = await fetch("https://back-end-klkg.onrender.com/api/profile", { credentials: "include" });
+        if (resProfile.status !== 200) {
+          window.location.href = "signUp.html";
+          return;
+        }
+        const profile = await resProfile.json();
+        userEmail = profile.email;
+        const res = await fetch(`https://back-end-klkg.onrender.com/api/orders?email=${encodeURIComponent(userEmail)}`, { credentials: "include" });
+        if (!res.ok) throw new Error("تعذر جلب الطلبات");
+        orders = await res.json();
+        renderOrders();
+      } catch {
+        document.getElementById('ordersContainer').innerHTML =
+          `<div class="empty-orders">تعذر جلب الطلبات! حاول لاحقاً.</div>`;
+      }
+    }
+
+    async function fetchUserRating(orderId, productId) {
+      try {
+        const res = await fetch(`https://back-end-klkg.onrender.com/api/rate/user?orderId=${orderId}&productId=${productId}`, { credentials: 'include' });
+        if (res.ok) return await res.json();
+      } catch {}
+      return null;
+    }
+
+    function renderRatingStars(container, value, readOnly, onRate) {
+      container.innerHTML = '';
+      for (let i = 1; i <= 5; i++) {
+        const star = document.createElement('i');
+        star.className = `fa${i <= value ? 's' : 'r'} fa-star text-yellow-400 rating-star`;
+        star.style.fontSize = "1.32em";
+        if (!readOnly) {
+          star.style.cursor = 'pointer';
+          star.onclick = () => onRate(i);
+        }
+        container.appendChild(star);
+      }
+    }
+
+    async function renderOrders() {
+      const container = document.getElementById('ordersContainer');
+      if (!orders.length) {
+        container.innerHTML = `<div class="empty-orders"><i class="fas fa-bag-shopping text-3xl mb-2 block"></i> لا توجد طلبات حالياً.</div>`;
+        return;
+      }
+      container.innerHTML = '';
+      for (const order of orders.slice().reverse()) {
+        let productsHtml = '';
+        for (const item of order.cart) {
+          productsHtml += `
+            <div class="order-product" data-order-id="${order._id}" data-product-id="${item.productId}">
+              <img src="${item.images && item.images[0] ? item.images[0] : ''}" class="order-product-img" alt="${item.name || ''}">
+              <div style="min-width:0;">
+                <div class="order-product-title">${item.name || ''}</div>
+                <div class="order-product-meta">${item.price} د.ل × ${item.qty}</div>
+              </div>
+              <div class="order-product-price">${(item.price * item.qty)} د.ل</div>
+              ${
+                order.status === "تم التوصيل"
+                ? `<div class="w-full mt-2" style="flex-basis:100%;display:block;">
+                    <div class="flex items-center gap-1 mb-1" id="rating-stars-${order._id}-${item.productId}"></div>
+                    <textarea id="rating-note-${order._id}-${item.productId}" rows="1" maxlength="2000" class="rating-note-area" placeholder="اكتب ملاحظتك (اختياري)"></textarea>
+                    <button class="rating-btn" id="rating-btn-${order._id}-${item.productId}"><i class="fa fa-star"></i> إرسال التقييم</button>
+                    <div class="text-success hidden" id="rating-success-${order._id}-${item.productId}"></div>
+                    <div class="text-error hidden" id="rating-error-${order._id}-${item.productId}"></div>
+                  </div>`
+                : ''
+              }
+            </div>
+          `;
+        }
+        let address = order.address ? `
+          <div class="order-details">
+            <b>العنوان:</b> ${order.address.city}, ${order.address.district}, ${order.address.street}, منزل ${order.address.houseNumber}
+            ${order.address.notes ? ("<br><b>ملاحظات:</b> " + order.address.notes) : ""}
+            <br><b>رقم الهاتف:</b> <span dir="ltr">${order.phone}</span>
+          </div>
+        ` : '';
+
+        let cancelable = (order.status === "قيد الانتظار" || order.status === "جار التجهيز");
+
+        container.innerHTML += `
+          <div class="order-box">
+            <div class="${statusClass(order.status)}">
+              <i class="fas fa-circle mr-1" style="font-size:.85em"></i> ${order.status}
+            </div>
+            <div class="order-products-list">${productsHtml}</div>
+            <div class="order-summary-row">
+              <span class="order-summary-label">الإجمالي:</span>
+              <span class="order-summary-value">${order.total} د.ل</span>
+            </div>
+            ${address}
+            <div class="text-sm text-gray-600 mb-1">تاريخ الطلب: ${formatDate(order.createdAt)}</div>
+            <button class="cancel-btn" ${!cancelable ? "disabled" : ""} onclick="showCancelModal('${order._id}')">
+              <i class="fas fa-ban"></i> إلغاء الطلب
+            </button>
+          </div>
+        `;
+      }
+
+      // تفعيل التقييم للمنتجات المستلمة
+      document.querySelectorAll('.order-product').forEach(async el => {
+        const orderId = el.getAttribute('data-order-id');
+        const productId = el.getAttribute('data-product-id');
+        if (!orderId || !productId) return;
+        const order = orders.find(o => o._id === orderId);
+        if (!order || order.status !== "تم التوصيل") return;
+
+        const ratingStarsDiv = document.getElementById(`rating-stars-${orderId}-${productId}`);
+        const noteInput = document.getElementById(`rating-note-${orderId}-${productId}`);
+        const btn = document.getElementById(`rating-btn-${orderId}-${productId}`);
+        const succMsg = document.getElementById(`rating-success-${orderId}-${productId}`);
+        const errMsg = document.getElementById(`rating-error-${orderId}-${productId}`);
+
+        if (!ratingStarsDiv || !btn) return;
+
+        // تحقق هل المستخدم سبق وقيم المنتج
+        const userRating = await fetchUserRating(orderId, productId);
+        let selectedRating = 0;
+        if (userRating) {
+          renderRatingStars(ratingStarsDiv, userRating.rating, true, ()=>{});
+          noteInput.value = userRating.note || "";
+          noteInput.readOnly = true;
+          btn.disabled = true;
+          btn.textContent = "تم التقييم";
+          succMsg.classList.remove("hidden");
+          succMsg.textContent = "تم إرسال تقييمك لهذا المنتج. شكرًا لك!";
+          return;
+        }
+
+        renderRatingStars(ratingStarsDiv, selectedRating, false, (val) => {
+          selectedRating = val;
+          renderRatingStars(ratingStarsDiv, selectedRating, false, arguments.callee);
+        });
+
+        btn.onclick = async function() {
+          errMsg.classList.add("hidden");
+          succMsg.classList.add("hidden");
+          if (!selectedRating) {
+            errMsg.textContent = "يرجى اختيار التقييم بالنجوم";
+            errMsg.classList.remove("hidden");
+            return;
+          }
+          btn.disabled = true;
+          btn.innerHTML = `<i class="fa fa-spinner fa-spin"></i> ...يرسل`;
+          try {
+            const res = await fetch("https://back-end-klkg.onrender.com/api/rate", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              credentials: "include",
+              body: JSON.stringify({
+                orderId, productId, rating: selectedRating, note: noteInput.value.trim()
+              })
+            });
+            const result = await res.json();
+            if (res.ok) {
+              renderRatingStars(ratingStarsDiv, selectedRating, true, ()=>{});
+              noteInput.readOnly = true;
+              btn.disabled = true;
+              btn.textContent = "تم التقييم";
+              succMsg.textContent = "تم إرسال تقييمك لهذا المنتج. شكرًا لك!";
+              succMsg.classList.remove("hidden");
+            } else {
+              errMsg.textContent = result.message || "حدث خطأ أثناء إرسال التقييم";
+              errMsg.classList.remove("hidden");
+              btn.disabled = false;
+              btn.innerHTML = `<i class="fa fa-star"></i> إرسال التقييم`;
+            }
+          } catch {
+            errMsg.textContent = "تعذر الاتصال بالخادم.";
+            errMsg.classList.remove("hidden");
+            btn.disabled = false;
+            btn.innerHTML = `<i class="fa fa-star"></i> إرسال التقييم`;
+          }
+        }
+      });
+    }
+
+    function formatDate(dateStr) {
+      try {
+        const d = new Date(dateStr);
+        return d.toLocaleDateString('ar-EG') + " - " + d.toLocaleTimeString('ar-EG', {hour: '2-digit', minute:'2-digit'});
+      } catch { return dateStr; }
+    }
+
+    function showCancelModal(orderId) {
+      cancelOrderId = orderId;
+      document.getElementById('cancelError').classList.add('hidden');
+      document.getElementById('cancelLoading').classList.add('hidden');
+      document.getElementById('confirmCancelBtn').disabled = false;
+      document.getElementById('cancelConfirmModal').classList.remove('hidden');
+    }
+    function closeCancelModal() {
+      cancelOrderId = null;
+      document.getElementById('cancelConfirmModal').classList.add('hidden');
+      document.getElementById('cancelError').classList.add('hidden');
+    }
+
+    document.getElementById('confirmCancelBtn').onclick = async function() {
+      if (!cancelOrderId) return;
+      document.getElementById('cancelError').classList.add('hidden');
+      document.getElementById('cancelLoading').classList.remove('hidden');
+      this.disabled = true;
+      try {
+        const res = await fetch(`https://back-end-klkg.onrender.com/api/orders/${cancelOrderId}/cancel`, {
+          method: "PUT",
+          credentials: "include"
+        });
+        const result = await res.json();
+        if (res.ok) {
+          const order = orders.find(o => o._id === cancelOrderId);
+          if (order) order.status = "ملغي";
+          closeCancelModal();
+          renderOrders();
+        } else {
+          document.getElementById('cancelError').textContent = result.message || "تعذر إلغاء الطلب.";
+          document.getElementById('cancelError').classList.remove('hidden');
+        }
+      } catch {
+        document.getElementById('cancelError').textContent = "تعذر الاتصال بالخادم.";
+        document.getElementById('cancelError').classList.remove('hidden');
+      }
+      document.getElementById('cancelLoading').classList.add('hidden');
+      this.disabled = false;
+    }
+
+    window.showCancelModal = showCancelModal;
+    window.closeCancelModal = closeCancelModal;
+
+    document.addEventListener('DOMContentLoaded', fetchUserOrders);
+  </script>
+</body>
+</html>

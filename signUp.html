@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إنشاء حساب جديد | سوق.كوم</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background: linear-gradient(135deg, #e0e7ff 0%, #f1f5f9 100%);
+        }
+        .logo-gradient {
+            background: linear-gradient(90deg,#2563eb 40%,#fbeed3 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: bold;
+            font-size: 2.4rem;
+            letter-spacing: 0.07em;
+        }
+        .primary-btn {
+            background: linear-gradient(90deg,#2563eb 70%, #fbeed3 100%);
+            color: white;
+            box-shadow: 0 2px 6px rgba(37,99,235,0.18);
+            font-weight: 500;
+            border: none;
+            transition: background 0.2s;
+        }
+        .primary-btn:disabled {
+            background: #a5b4fc;
+            color: #fff;
+            cursor: not-allowed;
+        }
+        .primary-btn:hover:not(:disabled) {
+            background: linear-gradient(90deg,#1e40af 70%, #fbeed3 100%);
+        }
+        .input-style {
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            background: #f8fafc;
+            padding: 0.75rem 1rem;
+            font-size: 1.1rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .input-style:focus {
+            border-color: #2563eb;
+            background: #fff;
+        }
+        .error-msg {
+            color: #dc2626;
+            font-size: 0.95rem;
+            margin-top: 0.25rem;
+        }
+        .success-msg {
+            color: #16a34a;
+            font-size: 1.1rem;
+            margin-top: 1rem;
+            text-align: center;
+        }
+        /* مودال الكود */
+        .modal-bg {
+            background: rgba(0,0,0,0.45);
+        }
+        .modal-sheet {
+            background: #fff;
+            border-radius: 1.2rem;
+            max-width: 380px;
+            width: 96%;
+            margin: 0 auto;
+            padding: 2.5rem 2rem 2rem 2rem;
+            box-shadow: 0 4px 32px 0 #0002;
+            position: relative;
+            animation: fadeIn .23s;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.98);}
+            to   { opacity: 1; transform: scale(1);}
+        }
+    </style>
+</head>
+<body class="rtl-support">
+
+    <!-- الهيدر -->
+    <header class="bg-white/80 shadow-xl rounded-b-2xl sticky top-0 z-40 backdrop-blur-xl">
+        <div class="container mx-auto px-4 py-3">
+            <div class="flex items-center justify-between">
+                <a href="Index.html" class="flex items-center gap-2">
+                    <img src="https://i.ibb.co/kgdfjxd9/Png.png" alt="شعار سوق.كوم" class="w-12 h-12 drop-shadow-lg"/>
+                    <span class="logo-gradient">سوق.كوم</span>
+                </a>
+                <div class="flex items-center space-x-4 space-x-reverse">
+                    <a href="signUp.html" class="text-blue-600 font-bold"><i class="fas fa-user-plus text-2xl"></i> إنشاء حساب</a>
+                    <a href="Index.html" class="text-gray-700 hover:text-blue-600"><i class="fas fa-home text-2xl"></i></a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- فورم تسجيل حساب جديد -->
+    <section class="flex items-center justify-center min-h-[80vh] py-8">
+        <div class="bg-white/90 rounded-2xl shadow-xl max-w-lg w-full px-8 py-12">
+            <h2 class="text-3xl font-bold text-blue-800 mb-4 text-center drop-shadow">إنشاء حساب جديد</h2>
+            <form id="signUpForm" class="space-y-6">
+                <div>
+                    <label for="fullName" class="block mb-2 font-medium text-gray-700">الاسم الكامل</label>
+                    <input type="text" id="fullName" name="fullName" class="input-style w-full" placeholder="اكتب اسمك هنا" required>
+                    <div class="error-msg" id="fullNameErr"></div>
+                </div>
+                <div>
+                    <label for="email" class="block mb-2 font-medium text-gray-700">البريد الإلكتروني</label>
+                    <input type="email" id="email" name="email" class="input-style w-full" placeholder="example@email.com" required>
+                    <div class="error-msg" id="emailErr"></div>
+                </div>
+                <div>
+                    <label for="password" class="block mb-2 font-medium text-gray-700">كلمة المرور</label>
+                    <input type="password" id="password" name="password" class="input-style w-full" placeholder="أدخل كلمة المرور" minlength="8" required>
+                    <div class="error-msg" id="passwordErr"></div>
+                </div>
+                <div>
+                    <label for="confirmPassword" class="block mb-2 font-medium text-gray-700">تأكيد كلمة المرور</label>
+                    <input type="password" id="confirmPassword" name="confirmPassword" class="input-style w-full" placeholder="أعد كتابة كلمة المرور" required>
+                    <div class="error-msg" id="confirmPasswordErr"></div>
+                </div>
+                <button type="submit" id="signUpBtn" class="primary-btn px-8 py-3 rounded-lg text-lg w-full flex items-center justify-center gap-2" disabled>
+                    <i class="fas fa-user-plus"></i>
+                    إنشاء حساب
+                </button>
+                <div id="formSuccess" class="success-msg hidden">تم إرسال كود التحقق إلى بريدك. أدخل الكود في النافذة أدناه.</div>
+                <div id="formError" class="error-msg text-center hidden"></div>
+            </form>
+            <div class="mt-8 text-center text-gray-700">
+                <span>لديك حساب بالفعل؟</span>
+                <a href="Index.html" class="text-blue-600 hover:underline font-semibold">تسجيل الدخول</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- مودال إدخال كود التحقق -->
+    <div id="verifyCodeModal" class="fixed inset-0 z-50 flex items-center justify-center modal-bg hidden">
+        <div class="modal-sheet">
+            <button onclick="closeCodeModal()" class="absolute left-4 top-4 text-gray-400 hover:text-red-500 text-xl"><i class="fas fa-times"></i></button>
+            <h2 class="text-xl font-bold text-blue-700 mb-6 text-center">تحقق البريد الإلكتروني</h2>
+            <form id="verifyCodeForm">
+                <input type="text" id="inputVerCode" class="input-style w-full mb-2 text-center text-xl" maxlength="6" required placeholder="أدخل الكود المكون من 6 أرقام">
+                <div class="error-msg" id="codeErr"></div>
+                <button type="submit" class="primary-btn px-6 py-2 rounded-lg w-full">تأكيد الكود</button>
+                <div class="success-msg hidden" id="codeSuccess">تم تفعيل حسابك بنجاح!</div>
+                <div class="text-sm text-gray-500 mt-2">لم يصلك الكود؟ <button type="button" id="resendBtn" class="text-blue-600 underline">إعادة الإرسال</button></div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- نافذة سياسة الخصوصية -->
+    <div id="privacyModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg p-8 w-full max-w-2xl relative">
+            <button onclick="closePrivacy()" class="absolute left-4 top-4 text-gray-500 hover:text-gray-700 text-xl"><i class="fas fa-times"></i></button>
+            <h3 class="text-2xl font-bold text-gray-800 mb-4 text-center">سياسة الخصوصية</h3>
+            <div class="text-gray-700 leading-relaxed max-h-[60vh] overflow-y-auto" dir="rtl">
+                <pre>📑 سياسة الخصوصية
+
+نحن في موقع سوق.كوم نحرص على حماية خصوصية مستخدمينا. باستخدامك لموقعنا، فإنك توافق على سياسة الخصوصية التالية:
+
+1. المعلومات التي نجمعها
+
+* عند التسجيل أو الشراء، قد نطلب منك إدخال بريدك الإلكتروني أو معلومات أخرى للتواصل.
+
+2. كيفية استخدام المعلومات
+
+* نستخدم معلوماتك لتقديم الخدمات وتحسين تجربة المستخدم.
+* قد نرسل لك رسائل بريد إلكتروني بخصوص طلباتك أو تحديثات مهمة.
+
+3. مشاركة المعلومات
+
+* نحن لا نبيع أو نؤجر معلوماتك الشخصية لأي طرف ثالث.
+* قد نشارك المعلومات فقط مع مزودي الخدمات الموثوقين (مثل شركات الشحن والدفع) لإتمام طلبك.
+
+4. حماية البيانات
+
+* نستخدم تدابير أمنية لحماية بياناتك من الوصول غير المصرح به.
+
+5. التعديلات
+
+* قد نقوم بتحديث سياسة الخصوصية من وقت لآخر، وسيتم نشر أي تعديل على هذه الصفحة.
+</pre>
+            </div>
+        </div>
+    </div>
+    <!-- نافذة شروط الاستخدام -->
+    <div id="termsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg p-8 w-full max-w-2xl relative">
+            <button onclick="closeTerms()" class="absolute left-4 top-4 text-gray-500 hover:text-gray-700 text-xl"><i class="fas fa-times"></i></button>
+            <h3 class="text-2xl font-bold text-gray-800 mb-4 text-center">شروط الاستخدام</h3>
+            <div class="text-gray-700 leading-relaxed max-h-[60vh] overflow-y-auto" dir="rtl">
+                <pre>📜 شروط الاستخدام
+
+باستخدامك لموقع سوق.كوم، فإنك توافق على الشروط التالية:
+
+1. استخدام الموقع:
+
+يجب أن يكون عمرك 18 سنة أو أكثر، أو أن تستخدم الموقع تحت إشراف ولي أمر.
+
+توافق على استخدام الموقع فقط للأغراض القانونية وعدم إساءة استخدامه.
+
+2. المنتجات والأسعار:
+
+جميع المنتجات المعروضة قابلة للتوافر، وقد تتغير الأسعار في أي وقت دون إشعار مسبق.
+
+قد تختلف صور المنتجات المعروضة قليلاً عن الواقع.
+
+3. الدفع والشحن:
+
+عند إتمام الطلب، يلتزم العميل بدفع التكلفة الكاملة للمنتج والشحن (إن وجد).
+
+نحن غير مسؤولين عن أي تأخير ناتج عن شركات الشحن أو الظروف الطارئة.
+
+4. الملكية الفكرية:
+
+جميع محتويات الموقع (شعارات، نصوص، صور، أكواد) هي ملك لـ سوق.كوم، ولا يجوز نسخها أو استخدامها بدون إذن خطي مسبق.
+
+5. التعديلات:
+
+يحق لنا تعديل سياسة الخصوصية أو شروط الاستخدام في أي وقت، وسيتم نشر التعديلات على هذه الصفحة.
+</pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- الفوتر -->
+    <footer class="bg-gradient-to-br from-blue-900 via-blue-700 to-[#fbeed3] text-white py-12 mt-12 rounded-t-2xl">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                    <h3 class="text-xl font-bold mb-4">سوق.كوم</h3>
+                    <p class="text-gray-200">متجر إلكتروني متخصص في بيع الشنط والإكسسوارات عالية الجودة للرجال والنساء.</p>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold mb-4">روابط سريعة</h3>
+                    <ul class="space-y-2">
+                        <li><a href="Index.html" class="nav-link text-blue-600 active-link" data-page="Index.html">الرئيسية</a></li>
+                        <li><a href="AboutUs.html" class="nav-link text-gray-200 hover:text-white" data-page="AboutUs.html">عنا</a></li>
+                        <li><a href="Shop.html" class="nav-link text-gray-200 hover:text-white" data-page="Shop.html">المنتجات</a></li>
+                        <li><a href="#" class="privacy-link text-gray-200 hover:text-white">سياسة الخصوصية</a></li>
+                        <li><a href="#" class="terms-link text-gray-200 hover:text-white">شروط الاستخدام</a></li>
+                        <li><a href="Contact.html" class="nav-link text-gray-200 hover:text-white" data-page="Contact.html">تواصل معنا</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold mb-4">تابعنا</h3>
+                    <div class="flex space-x-4 space-x-reverse mb-4">
+                       <a href="https://www.facebook.com/share/1CEyEf8f9P/?mibextid=wwXIfr" target="_blank" class="text-gray-200 hover:text-white text-2xl"><i class="fab fa-facebook"></i></a>
+                       
+                        <a href="https://www.instagram.com/souqdotcom0?igsh=MXBucmxjMWptcWxoOA%3D%3D&utm_source=qr
+" target="_blank" class="text-gray-200 hover:text-white text-2xl"><i class="fab fa-instagram"></i></a>
+                       <a href="https://www.tiktok.com/@souqdotcom?_t=ZM-8zQ6bPBXfRG&_r=1" target="_blank" class="text-gray-200 hover:text-white text-2xl"><i class="fab fa-tiktok"></i></a>
+                    </div>
+                    
+                </div>
+            </div>
+            <div class="border-t border-blue-400 mt-8 pt-8 text-center text-gray-300">
+                <p>© 2025 سوق.كوم. جميع الحقوق محفوظة.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // تحقق من صحة كل حقل
+        function validateForm() {
+            let valid = true;
+            // الاسم الكامل
+            const fullName = document.getElementById('fullName').value.trim();
+            if (fullName.length < 3) {
+                document.getElementById('fullNameErr').textContent = "يرجى إدخال اسم كامل صحيح";
+                valid = false;
+            } else {
+                document.getElementById('fullNameErr').textContent = "";
+            }
+
+            // البريد الإلكتروني
+            const email = document.getElementById('email').value.trim();
+            const emailPattern = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+            if (!emailPattern.test(email)) {
+                document.getElementById('emailErr').textContent = "يرجى إدخال بريد إلكتروني صحيح";
+                valid = false;
+            } else {
+                document.getElementById('emailErr').textContent = "";
+            }
+
+            // كلمة المرور
+            const password = document.getElementById('password').value;
+            if (password.length < 8) {
+                document.getElementById('passwordErr').textContent = "كلمة المرور يجب أن لا تقل عن 8 خانات";
+                valid = false;
+            } else if (!(/[A-Za-z]/.test(password) && /[0-9]/.test(password))) {
+                document.getElementById('passwordErr').textContent = "كلمة المرور يجب أن تحتوي على أحرف وأرقام";
+                valid = false;
+            } else {
+                document.getElementById('passwordErr').textContent = "";
+            }
+
+            // تأكيد كلمة المرور
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            if (confirmPassword !== password || confirmPassword.length === 0) {
+                document.getElementById('confirmPasswordErr').textContent = "يرجى تأكيد كلمة المرور بشكل صحيح";
+                valid = false;
+            } else {
+                document.getElementById('confirmPasswordErr').textContent = "";
+            }
+
+            // تفعيل/تعطيل زر التسجيل
+            document.getElementById('signUpBtn').disabled = !valid;
+            return valid;
+        }
+
+        // تحقق حي في كل تغيير
+        document.querySelectorAll('#signUpForm input').forEach(input => {
+            input.addEventListener('input', validateForm);
+        });
+
+        // حفظ بيانات التسجيل مؤقتاً
+        let pendingSignUpData = null;
+        let currentEmail = "";
+
+        // إرسال البيانات للباك اند (طلب إنشاء وإرسال الكود)
+        document.getElementById('signUpForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            if (!validateForm()) return;
+
+            // اجمع البيانات
+            const data = {
+                fullName: document.getElementById('fullName').value.trim(),
+                email: document.getElementById('email').value.trim(),
+                password: document.getElementById('password').value
+            };
+
+            document.getElementById('formError').classList.add('hidden');
+            document.getElementById('formSuccess').classList.add('hidden');
+            document.getElementById('signUpBtn').disabled = true;
+
+            fetch('https://back-end-klkg.onrender.com/api/signup/send-code', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            })
+            .then(async res => {
+                const result = await res.json();
+                if (res.ok) {
+                    pendingSignUpData = data;
+                    currentEmail = data.email;
+                    document.getElementById('formSuccess').classList.remove('hidden');
+                    setTimeout(() => {
+                        openCodeModal();
+                    }, 900);
+                } else {
+                    document.getElementById('formError').textContent = result.message || "حدث خطأ أثناء إرسال الكود";
+                    document.getElementById('formError').classList.remove('hidden');
+                    document.getElementById('signUpBtn').disabled = false;
+                }
+            })
+            .catch(() => {
+                document.getElementById('formError').textContent = "تعذر الاتصال بالخادم. حاول لاحقاً";
+                document.getElementById('formError').classList.remove('hidden');
+                document.getElementById('signUpBtn').disabled = false;
+            });
+        });
+
+        // فتح مودال الكود
+        function openCodeModal() {
+            document.getElementById('verifyCodeModal').classList.remove('hidden');
+            document.getElementById('inputVerCode').value = "";
+            document.getElementById('codeErr').textContent = "";
+            document.getElementById('codeSuccess').classList.add('hidden');
+        }
+        function closeCodeModal() {
+            document.getElementById('verifyCodeModal').classList.add('hidden');
+        }
+
+        // تحقق كود التحقق
+        document.getElementById('verifyCodeForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const code = document.getElementById('inputVerCode').value.trim();
+            if (!code.match(/^[0-9]{6}$/)) {
+                document.getElementById('codeErr').textContent = "يرجى إدخال الكود المكون من 6 أرقام";
+                return;
+            }
+            document.getElementById('codeErr').textContent = "";
+            document.getElementById('codeSuccess').classList.add('hidden');
+
+            // إرسال الكود للباك اند للتحقق وإنشاء الحساب
+            fetch('https://back-end-klkg.onrender.com/api/signup/verify-code', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    ...pendingSignUpData,
+                    code: code
+                })
+            })
+            .then(async res => {
+                const result = await res.json();
+                if (res.ok) {
+                    document.getElementById('codeSuccess').textContent = result.message || "تم تفعيل حسابك بنجاح!";
+                    document.getElementById('codeSuccess').classList.remove('hidden');
+                    setTimeout(() => {
+                        window.location.href = "Index.html";
+                    }, 2200);
+                } else {
+                    document.getElementById('codeErr').textContent = result.message || "كود غير صحيح أو منتهي";
+                }
+            })
+            .catch(() => {
+                document.getElementById('codeErr').textContent = "تعذر الاتصال بالخادم";
+            });
+        });
+
+        // زر إعادة إرسال الكود
+        document.getElementById('resendBtn').onclick = function() {
+            if (!pendingSignUpData || !currentEmail) return;
+            document.getElementById('resendBtn').disabled = true;
+            fetch('https://back-end-klkg.onrender.com/api/signup/send-code', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(pendingSignUpData)
+            })
+            .then(async res => {
+                const result = await res.json();
+                if (res.ok) {
+                    document.getElementById('codeErr').textContent = "تم إرسال الكود مرة أخرى لبريدك.";
+                } else {
+                    document.getElementById('codeErr').textContent = result.message || "تعذر إرسال الكود.";
+                }
+            })
+            .catch(() => {
+                document.getElementById('codeErr').textContent = "تعذر الاتصال بالخادم";
+            })
+            .finally(() => {
+                setTimeout(() => {
+                    document.getElementById('resendBtn').disabled = false;
+                }, 3000);
+            });
+        }
+
+         // سياسة الخصوصية وشروط الاستخدام
+        document.querySelectorAll('.privacy-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                document.getElementById('privacyModal').classList.remove('hidden');
+            });
+        });
+        function closePrivacy() {
+            document.getElementById('privacyModal').classList.add('hidden');
+        }
+        document.querySelectorAll('.terms-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                document.getElementById('termsModal').classList.remove('hidden');
+            });
+        });
+        function closeTerms() {
+            document.getElementById('termsModal').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
