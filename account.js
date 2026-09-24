@@ -109,13 +109,13 @@ async function loginHandler(e) {
   if (!email || !password) return showLoginError("يرجى إدخال البريد الإلكتروني وكلمة المرور");
 
   try {
-    const res = await fetch(`${SERVER_URL}/api/signin`, {
+    const res = await apiFetch("/api/signin", {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
       body: JSON.stringify({ email, password })
     });
-    const result = await res.json();
+    const result = res.apiBody || {};
 
     if (res.ok) {
       isAuthenticated = true;
@@ -177,7 +177,7 @@ function restoreUserIconDefault() {
 // تسجيل الخروج
 async function logoutHandler() {
   try {
-    await fetch(`${SERVER_URL}/api/logout`, {
+    await apiFetch("/api/logout", {
       method: 'POST',
       credentials: 'include'
     });
@@ -195,7 +195,7 @@ async function logoutHandler() {
 // فحص حالة تسجيل الدخول عند التحميل
 async function checkLoginStatus() {
   try {
-    const res = await fetch(`${SERVER_URL}/api/profile`, {
+    const res = await apiFetch("/api/profile", {
       method: 'GET',
       credentials: 'include'
     });
@@ -224,7 +224,7 @@ async function checkLoginStatus() {
 // فحص هل المستخدم أدمن
 async function checkIfAdmin() {
   try {
-    const res = await fetch(`${SERVER_URL}/api/admin/me`, { credentials: 'include' });
+    const res = await apiFetch("/api/admin/me");
     isAdmin = res.ok;
   } catch {
     isAdmin = false;

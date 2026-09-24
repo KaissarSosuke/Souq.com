@@ -60,29 +60,20 @@ function showToast({ message, type = "success", duration = 2200 }) {
 }
 
 let userCart = [];
-let userEmail = "";
 
 async function fetchCart() {
     try {
-        const resProfile = await fetch("https://back-end-klkg.onrender.com/api/profile", { credentials: "include" });
-        if (resProfile.status !== 200) {
+        const res = await apiFetch("/api/user-cart/me");
+        const body = res.apiBody || await readApiBody(res);
+        if (!Array.isArray(body.items)) throw new Error("استجابة السلة غير صالحة");
+        userCart = body.items;
+        updateCartCount();
+    } catch (err) {
+        if (err.status === 401) {
             userCart = [];
-            userEmail = "";
             updateCartCount();
             return;
         }
-        const profile = await resProfile.json();
-        userEmail = profile.email;
-
-        const res = await fetch("https://back-end-klkg.onrender.com/api/user-cart/", { credentials: "include" });
-        let allCarts = [];
-        if (res.ok) allCarts = await res.json();
-        const cartForUser = Array.isArray(allCarts)
-            ? allCarts.find(c => c.email === userEmail || c.userEmail === userEmail)
-            : null;
-        userCart = cartForUser && cartForUser.cart ? cartForUser.cart : [];
-        updateCartCount();
-    } catch (err) {
         userCart = [];
         updateCartCount();
     }
@@ -101,7 +92,7 @@ function showCart() {
     const cartTotal = document.getElementById('cartTotal');
     const checkoutBtn = document.getElementById('checkoutBtn');
     if (!cartItemsDiv || !cartEmpty || !cartTotal || !checkoutBtn) return;
-    cartItemsDiv.innerHTML = '';
+    cartItemsDiv.replaceChildren();
     if(userCart.length === 0) {
         cartEmpty.style.display = 'block';
         cartTotal.textContent = '';
@@ -111,18 +102,21 @@ function showCart() {
         let total = 0;
         userCart.forEach(item => {
             total += (parseInt(item.price) || 0) * (parseInt(item.qty) || 0);
-            cartItemsDiv.innerHTML += `
-                <div class="flex items-center justify-between border-b py-3">
-                    <div class="flex items-center gap-3">
-                        <img src="${item.images && item.images[0] ? item.images[0] : ''}" class="w-14 h-14 object-cover rounded" alt="${item.name || ''}">
-                        <div>
-                            <div class="font-bold text-gray-800">${item.name || ''}</div>
-                            <div class="text-blue-600 font-bold">${item.price} د.ل × ${item.qty}</div>
-                        </div>
-                    </div>
-                    <button onclick="window.removeFromCart && removeFromCart('${item.productId}')" class="text-red-600 hover:underline">حذف</button>
-                </div>
-            `;
+            const row = document.createElement("div");
+            row.className = "flex items-center justify-between border-b py-3";
+            const image = document.createElement("img");
+            image.src = safeImageUrl(item.images?.[0]); image.alt = String(item.name || "");
+            image.className = "w-14 h-14 object-cover rounded";
+            const details = document.createElement("div");
+            details.innerHTML = `<div class="font-bold text-gray-800"></div><div class="text-blue-600 font-bold"></div>`;
+            details.firstElementChild.textContent = item.name || "";
+            details.lastElementChild.textContent = `${item.price} د.ل × ${item.qty}`;
+            const left = document.createElement("div"); left.className = "flex items-center gap-3";
+            left.append(image, details);
+            const remove = document.createElement("button");
+            remove.className = "text-red-600 hover:underline"; remove.textContent = "حذف";
+            remove.dataset.productId = item.productId;
+            row.append(left, remove); cartItemsDiv.appendChild(row);
         });
         cartTotal.textContent = `الإجمالي: ${total} د.ل`;
         checkoutBtn.style.display = "block";
@@ -135,8 +129,9 @@ function closeCart() {
 }
 
 async function addToCart(productId, qty=1) {
-    const resProfile = await fetch("https://back-end-klkg.onrender.com/api/profile", { credentials: "include" });
-    if (resProfile.status !== 200) {
+    try {
+    await apiFetch("/api/profile");
+    } catch (err) {
         showToast({message: "يجب تسجيل الدخول لإضافة منتجات للسلة.", type: "error"});
         return;
     }
@@ -144,10 +139,10 @@ async function addToCart(productId, qty=1) {
 
     let productData = null;
     try {
-        const res = await fetch("https://back-end-klkg.onrender.com/api/products");
+        const res = await apiFetch("/api/products");
         if (res.ok) {
             const products = await res.json();
-            productData = products.find(p => p._id === productId || p.id === productId);
+            productData = (res.apiBody || products).find(p => p._id === productId || p.id === productId);
         }
     } catch {}
     if (!productData) {
@@ -163,13 +158,13 @@ async function addToCart(productId, qty=1) {
     }
 
     try {
-        const res = await fetch("https://back-end-klkg.onrender.com/api/user-cart/add", {
+        const res = await apiFetch("/api/user-cart/add", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             credentials: "include",
             body: JSON.stringify({ productId, qty })
         });
-        const result = await res.json();
+        const result = res.apiBody || {};
         if (res.ok && result.success) {
             await fetchCart();
             showToast({message: "تم إضافة المنتج للسلة بنجاح!", type: "success"});
@@ -183,13 +178,13 @@ async function addToCart(productId, qty=1) {
 
 async function removeFromCart(productId) {
     try {
-        const res = await fetch("https://back-end-klkg.onrender.com/api/user-cart/remove", {
+        const res = await apiFetch("/api/user-cart/remove", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             credentials: "include",
             body: JSON.stringify({ productId })
         });
-        const result = await res.json();
+        const result = res.apiBody || {};
         if (res.ok && result.success) {
             await fetchCart();
             showCart();
@@ -204,11 +199,11 @@ async function removeFromCart(productId) {
 
 async function clearCart() {
     try {
-        const res = await fetch("https://back-end-klkg.onrender.com/api/user-cart/clear", {
+        const res = await apiFetch("/api/user-cart/clear", {
             method: "POST",
             credentials: "include"
         });
-        const result = await res.json();
+        const result = res.apiBody || {};
         if (res.ok && result.success) {
             await fetchCart();
             showCart();
@@ -254,6 +249,10 @@ document.addEventListener('DOMContentLoaded', async function() {
         closeCart();
         window.location.href = "payment.html";
     };
+    document.getElementById("cartItems")?.addEventListener("click", event => {
+        const button = event.target.closest("button[data-product-id]");
+        if (button) removeFromCart(button.dataset.productId);
+    });
 
     window.removeFromCart = removeFromCart;
     window.addToCart = addToCart;
