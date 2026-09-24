@@ -341,16 +341,16 @@
     let cancelOrderId = null;
     async function fetchUserOrders() {
       try {
-        const resProfile = await fetch("https://back-end-klkg.onrender.com/api/profile", { credentials: "include" });
-        if (resProfile.status !== 200) {
+        const resProfile = await apiFetch("/api/profile", { timeout: 15000 });
+        if (!resProfile.ok) {
           window.location.href = "signUp.html";
           return;
         }
-        const profile = await resProfile.json();
+        const profile = resProfile.apiBody || await resProfile.json();
         userEmail = profile.email;
-        const res = await fetch(`https://back-end-klkg.onrender.com/api/orders?email=${encodeURIComponent(userEmail)}`, { credentials: "include" });
+        const res = await apiFetch("/api/orders/me", { timeout: 15000 });
         if (!res.ok) throw new Error("تعذر جلب الطلبات");
-        orders = await res.json();
+        orders = res.apiBody || await res.json();
         renderOrders();
       } catch {
         document.getElementById('ordersContainer').innerHTML =
@@ -391,13 +391,13 @@
         let productsHtml = '';
         for (const item of order.cart) {
           productsHtml += `
-            <div class="order-product" data-order-id="${order._id}" data-product-id="${item.productId}">
-              <img src="${item.images && item.images[0] ? item.images[0] : ''}" class="order-product-img" alt="${item.name || ''}">
+            <div class="order-product" data-order-id="${escapeHtml(String(order._id || ''))}" data-product-id="${escapeHtml(String(item.productId || ''))}">
+              <img src="${escapeHtml(String(item.images && item.images[0] ? item.images[0] : ''))}" class="order-product-img" alt="${escapeHtml(String(item.name || ''))}">
               <div style="min-width:0;">
-                <div class="order-product-title">${item.name || ''}</div>
-                <div class="order-product-meta">${item.price} د.ل × ${item.qty}</div>
+                <div class="order-product-title">${escapeHtml(String(item.name || ''))}</div>
+                <div class="order-product-meta">${escapeHtml(String(item.price || 0))} د.ل × ${escapeHtml(String(item.qty || 0))}</div>
               </div>
-              <div class="order-product-price">${(item.price * item.qty)} د.ل</div>
+              <div class="order-product-price">${escapeHtml(String((item.price || 0) * (item.qty || 0)))} د.ل</div>
               ${
                 order.status === "تم التوصيل"
                 ? `<div class="w-full mt-2" style="flex-basis:100%;display:block;">
@@ -414,9 +414,9 @@
         }
         let address = order.address ? `
           <div class="order-details">
-            <b>العنوان:</b> ${order.address.city}, ${order.address.district}, ${order.address.street}, منزل ${order.address.houseNumber}
-            ${order.address.notes ? ("<br><b>ملاحظات:</b> " + order.address.notes) : ""}
-            <br><b>رقم الهاتف:</b> <span dir="ltr">${order.phone}</span>
+            <b>العنوان:</b> ${escapeHtml(String(order.address.city || ''))}, ${escapeHtml(String(order.address.district || ''))}, ${escapeHtml(String(order.address.street || ''))}, منزل ${escapeHtml(String(order.address.houseNumber || ''))}
+            ${order.address.notes ? ("<br><b>ملاحظات:</b> " + escapeHtml(String(order.address.notes))) : ""}
+            <br><b>رقم الهاتف:</b> <span dir="ltr">${escapeHtml(String(order.phone || ''))}</span>
           </div>
         ` : '';
 

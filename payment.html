@@ -265,19 +265,15 @@
     let total = 0;
     async function fetchCartForPayment() {
       try {
-        const resProfile = await fetch("https://back-end-klkg.onrender.com/api/profile", { credentials: "include" });
-        if (resProfile.status !== 200) {
+        const resProfile = await apiFetch("/api/profile", { timeout: 15000 });
+        if (!resProfile.ok) {
           window.location.href = "signUp.html";
           return;
         }
-        const profile = await resProfile.json();
-        const res = await fetch("https://back-end-klkg.onrender.com/api/user-cart/", { credentials: "include" });
-        let allCarts = [];
-        if (res.ok) allCarts = await res.json();
-        const cartForUser = Array.isArray(allCarts)
-          ? allCarts.find(c => c.email === profile.email)
-          : null;
-        userCart = cartForUser && cartForUser.cart ? cartForUser.cart : [];
+        const profile = resProfile.apiBody || await resProfile.json();
+        const res = await apiFetch("/api/user-cart/me", { timeout: 15000 });
+        const body = res.apiBody || await res.json();
+        userCart = Array.isArray(body.items) ? body.items : [];
         renderCartSummary();
       } catch {
         userCart = [];
@@ -298,12 +294,12 @@
         const price = (parseInt(item.price) || 0) * (parseInt(item.qty) || 0);
         html += `
           <div class="order-item">
-            <img src="${item.images && item.images[0] ? item.images[0] : ''}" class="order-img" alt="${item.name || ''}">
+            <img src="${escapeHtml(String(item.images && item.images[0] ? item.images[0] : ''))}" class="order-img" alt="${escapeHtml(String(item.name || ''))}">
             <div class="order-item-desc">
-              <div class="order-item-title">${item.name || ''}</div>
-              <div class="order-item-meta">${item.price} د.ل × ${item.qty}</div>
+              <div class="order-item-title">${escapeHtml(String(item.name || ''))}</div>
+              <div class="order-item-meta">${escapeHtml(String(item.price || 0))} د.ل × ${escapeHtml(String(item.qty || 0))}</div>
             </div>
-            <div class="order-item-price">${price} د.ل</div>
+            <div class="order-item-price">${escapeHtml(String(price))} د.ل</div>
           </div>
         `;
         total += price;

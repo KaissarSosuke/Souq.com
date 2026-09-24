@@ -43,7 +43,7 @@ function showToast({ message, type = "success", duration = 2200 }) {
                 type === "warning" ? '<i class="fas fa-exclamation-triangle"></i>' : ""
             }
         </span>
-        <span class="text-lg font-medium">${message}</span>
+        <span class="text-lg font-medium">${escapeHtml(message)}</span>
     `;
     toast.style.opacity = "0";
     toast.style.transform = "translateY(30px) scale(0.98)";
@@ -110,7 +110,7 @@ function showCart() {
             const details = document.createElement("div");
             details.innerHTML = `<div class="font-bold text-gray-800"></div><div class="text-blue-600 font-bold"></div>`;
             details.firstElementChild.textContent = item.name || "";
-            details.lastElementChild.textContent = `${item.price} د.ل × ${item.qty}`;
+            details.lastElementChild.textContent = `${escapeHtml(String(item.price || 0))} د.ل × ${escapeHtml(String(item.qty || 0))}`;
             const left = document.createElement("div"); left.className = "flex items-center gap-3";
             left.append(image, details);
             const remove = document.createElement("button");
