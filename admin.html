@@ -586,7 +586,10 @@
         
         <div class="mt-8 pt-6 border-t border-white/20">
           <button id="logoutBtn" class="sidebar-btn w-full text-blue-300 hover:text-blue-100 hover:bg-blue-500/20">
-            <i class="fa fa-sign-out-alt"></i>المزيد..
+            <i class="fa fa-layer-group"></i>الإدارة المتقدمة
+          </button>
+          <button id="adminLogoutBtn" class="sidebar-btn w-full text-red-300 hover:text-red-100 hover:bg-red-500/20 mt-2">
+            <i class="fa fa-sign-out-alt"></i>تسجيل الخروج
           </button>
         </div>
       </div>
@@ -805,6 +808,21 @@
 
   <script>
     const API_BASE = "https://back-end-klkg.onrender.com/api";
+
+    // Admin fetch with CSRF (common.js provides getCsrfToken). Preserves fetch response shape.
+    async function adminFetch(url, options = {}) {
+      const method = String(options.method || "GET").toUpperCase();
+      const headers = { ...(options.headers || {}) };
+      if (!["GET", "HEAD", "OPTIONS"].includes(method)) {
+        try {
+          headers["X-CSRF-Token"] = await getCsrfToken();
+        } catch (e) {
+          console.warn("CSRF token unavailable", e);
+        }
+        if (options.body !== undefined && !headers["Content-Type"]) headers["Content-Type"] = "application/json";
+      }
+      return fetch(url, { ...options, method, headers, credentials: "include" });
+    }
     
     const statusTranslations = {
       "قيد الانتظار": { class: "badge-pending", icon: "clock" },
@@ -831,7 +849,7 @@
     async function initializeApp() {
       try {
         // Check admin authentication
-        const response = await fetch(`${API_BASE}/admin/me`, { 
+        const response = await adminFetch(`${API_BASE}/admin/me`, { 
           credentials: "include",
           headers: {
             'Content-Type': 'application/json'
@@ -929,7 +947,7 @@
       isLoading = true;
 
       try {
-        const response = await fetch(`${API_BASE}/admin/orders`, {
+        const response = await adminFetch(`${API_BASE}/admin/orders`, {
           credentials: "include",
           headers: { 'Content-Type': 'application/json' }
         });
@@ -957,14 +975,15 @@
         return;
       }
 
-      tbody.innerHTML = orders.map(order => {
+      tbody.replaceChildren();
+      orders.forEach(order => {
         const statusInfo = statusTranslations[order.status] || { class: "badge", icon: "question" };
-        const cartItems = order.cart?.map(item => 
+        const cartItems = (order.cart || []).map(item =>
           `<div class="mb-1">
-            <strong>${escapeHtml(item.name)}</strong> × ${item.qty} 
-            <span class="text-blue-600">(${item.price} د.ل)</span>
+            <strong>${escapeHtml(item.name)}</strong> × ${escapeHtml(String(item.qty))} 
+            <span class="text-blue-600">(${escapeHtml(String(item.price))} د.ل)</span>
           </div>`
-        ).join('') || '';
+        ).join('');
         
         const addressStr = order.address ? 
           `<div class="text-sm">
@@ -973,24 +992,30 @@
             ${order.address.notes ? '<br><small class="text-gray-500">' + escapeHtml(order.address.notes) + '</small>' : ''}
           </div>` : 'غير محدد';
 
-        return `
-          <tr class="hover:bg-gray-50 transition-colors">
-            <td class="font-medium">${escapeHtml(order.fullName)}</td>
-            <td>${escapeHtml(order.email)}</td>
-            <td class="relative">
-              <span class="badge ${statusInfo.class} cursor-pointer" onclick="showStatusDropdown('${order._id}', this)">
-                <i class="fa fa-${statusInfo.icon} ml-1"></i>${order.status}
-              </span>
-              <div class="status-dropdown hidden"></div>
-            </td>
-            <td class="font-bold text-green-600">${order.total} د.ل</td>
-            <td class="max-w-xs">${addressStr}</td>
-            <td dir="ltr" class="font-mono">${escapeHtml(order.phone || 'غير محدد')}</td>
-            <td class="max-w-xs">${cartItems}</td>
-            <td class="text-sm text-gray-500">${formatDateTime(order.createdAt)}</td>
-          </tr>
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-gray-50 transition-colors";
+        const oid = String(order._id || "");
+        tr.innerHTML = `
+          <td class="font-medium">${escapeHtml(order.fullName)}</td>
+          <td>${escapeHtml(order.email)}</td>
+          <td class="relative">
+            <span class="badge ${statusInfo.class} cursor-pointer" data-status-order="">
+              <i class="fa fa-${statusInfo.icon} ml-1"></i>${escapeHtml(order.status)}
+            </span>
+            <div class="status-dropdown hidden"></div>
+          </td>
+          <td class="font-bold text-green-600">${escapeHtml(String(order.total))} د.ل</td>
+          <td class="max-w-xs">${addressStr}</td>
+          <td dir="ltr" class="font-mono">${escapeHtml(order.phone || 'غير محدد')}</td>
+          <td class="max-w-xs">${cartItems}</td>
+          <td class="text-sm text-gray-500">${escapeHtml(formatDateTime(order.createdAt))}</td>
         `;
-      }).join('');
+        const badge = tr.querySelector('[data-status-order]');
+        badge.dataset.orderId = oid;
+        badge.dataset.currentStatus = String(order.status || "");
+        badge.addEventListener('click', (e) => { e.stopPropagation(); showStatusDropdown(oid, badge); });
+        tbody.appendChild(tr);
+      });
     }
 
     function updateOrderStats(orders) {
@@ -1032,19 +1057,28 @@
       document.querySelectorAll('.status-dropdown').forEach(d => d.classList.add('hidden'));
       
       const dropdown = element.parentElement.querySelector('.status-dropdown');
-      const currentStatus = element.textContent.trim().replace(/.*\s/, '');
+      const currentStatus = element.dataset.currentStatus || element.textContent.trim();
       
-      dropdown.innerHTML = allowedOrderStatuses.map(status => 
-        `<button class="status-option ${status === currentStatus ? 'selected' : ''}" 
-                onclick="selectStatus('${orderId}', '${status}', this)">
-          <i class="fa fa-${statusTranslations[status]?.icon || 'circle'} ml-1"></i>${status}
-        </button>`
-      ).join('') + 
-      `<div class="px-4 py-2 border-t">
-        <button class="add-btn w-full text-sm" onclick="updateOrderStatus('${orderId}')">
-          حفظ التغييرات
-        </button>
-      </div>`;
+      dropdown.replaceChildren();
+      allowedOrderStatuses.forEach(status => {
+        const btn = document.createElement('button');
+        btn.className = `status-option ${status === currentStatus ? 'selected' : ''}`;
+        btn.type = "button";
+        const icon = document.createElement('i');
+        icon.className = `fa fa-${statusTranslations[status]?.icon || 'circle'} ml-1`;
+        btn.append(icon, document.createTextNode(status));
+        btn.addEventListener('click', (e) => { e.stopPropagation(); selectStatus(orderId, status, btn); });
+        dropdown.appendChild(btn);
+      });
+      const footer = document.createElement('div');
+      footer.className = "px-4 py-2 border-t";
+      const save = document.createElement('button');
+      save.className = "add-btn w-full text-sm";
+      save.type = "button";
+      save.textContent = "حفظ التغييرات";
+      save.addEventListener('click', (e) => { e.stopPropagation(); updateOrderStatus(orderId); });
+      footer.appendChild(save);
+      dropdown.appendChild(footer);
       
       dropdown.classList.remove('hidden');
       dropdown.dataset.orderId = orderId;
@@ -1070,13 +1104,15 @@
     };
 
     window.updateOrderStatus = async function(orderId) {
-      const dropdown = document.querySelector(`[data-order-id="${orderId}"]`);
+      const safeId = String(orderId || "").replace(/[^a-fA-F0-9]/g, "");
+      const badge = document.querySelector(`[data-order-id="${safeId}"]`);
+      const dropdown = badge ? badge.parentElement.querySelector('.status-dropdown') : document.querySelector(`.status-dropdown[data-order-id="${safeId}"]`);
       const newStatus = dropdown?.dataset.selectedStatus;
       
       if (!newStatus) return;
 
       try {
-        const response = await fetch(`${API_BASE}/admin/orders/${orderId}/status`, {
+        const response = await adminFetch(`${API_BASE}/admin/orders/${encodeURIComponent(safeId)}/status`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
@@ -1101,7 +1137,7 @@
       isLoading = true;
 
       try {
-        const response = await fetch(`${API_BASE}/admin/users`, {
+        const response = await adminFetch(`${API_BASE}/admin/users`, {
           credentials: "include",
           headers: { 'Content-Type': 'application/json' }
         });
@@ -1128,41 +1164,51 @@
         return;
       }
 
-      tbody.innerHTML = users.map(user => `
-        <tr class="hover:bg-gray-50 transition-colors">
+      tbody.replaceChildren();
+      users.forEach(user => {
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-gray-50 transition-colors";
+        const uid = String(user._id || "");
+        tr.innerHTML = `
           <td class="font-medium">${escapeHtml(user.fullName)}</td>
           <td>${escapeHtml(user.email)}</td>
           <td class="font-mono text-sm">${escapeHtml(user.ip || 'غير محدد')}</td>
-          <td class="text-sm text-gray-500">${formatDateTime(user.createdAt)}</td>
-          <td>
-            <button class="action-btn danger" onclick="deleteUser('${user._id}', '${escapeHtml(user.fullName)}')">
-              <i class="fa fa-trash ml-1"></i>حذف
-            </button>
-          </td>
-        </tr>
-      `).join('');
+          <td class="text-sm text-gray-500">${escapeHtml(formatDateTime(user.createdAt))}</td>
+          <td></td>
+        `;
+        const btn = document.createElement('button');
+        btn.className = "action-btn danger";
+        btn.innerHTML = '<i class="fa fa-trash ml-1"></i>حذف';
+        btn.addEventListener('click', () => deleteUser(uid, String(user.fullName || "")));
+        tr.lastElementChild.appendChild(btn);
+        tbody.appendChild(tr);
+      });
     }
 
     window.deleteUser = async function(userId, userName) {
-      if (!confirm(`هل أنت متأكد من حذف المستخدم "${userName}" نهائياً؟\nهذا الإجراء لا يمكن التراجع عنه.`)) {
+      if (!confirm(`هل أنت متأكد من حذف المستخدم "${String(userName).slice(0, 100)}" نهائياً؟\nهذا الإجراء لا يمكن التراجع عنه.`)) {
         return;
       }
 
       try {
-        const response = await fetch(`${API_BASE}/admin/users/${userId}`, {
+        const response = await adminFetch(`${API_BASE}/admin/users/${encodeURIComponent(userId)}`, {
           method: "DELETE",
           credentials: "include",
           headers: { 'Content-Type': 'application/json' }
         });
 
-        if (!response.ok) throw new Error('فشل في حذف المستخدم');
+        if (!response.ok) {
+          let msg = 'فشل في حذف المستخدم';
+          try { msg = (await response.json()).message || msg; } catch {}
+          throw new Error(msg);
+        }
 
         await loadUsers();
         showNotification('تم حذف المستخدم بنجاح', 'success');
         
       } catch (error) {
         console.error('خطأ في حذف المستخدم:', error);
-        showNotification('خطأ في حذف المستخدم', 'error');
+        showNotification(error.message || 'خطأ في حذف المستخدم', 'error');
       }
     };
 
@@ -1172,7 +1218,7 @@
       isLoading = true;
 
       try {
-        const response = await fetch(`${API_BASE}/admin/carts`, {
+        const response = await adminFetch(`${API_BASE}/admin/carts`, {
           credentials: "include",
           headers: { 'Content-Type': 'application/json' }
         });
@@ -1199,38 +1245,42 @@
         return;
       }
 
-      tbody.innerHTML = carts.map(cart => {
-        const cartItems = cart.cart?.map(item => 
+      tbody.replaceChildren();
+      carts.forEach(cart => {
+        const cartItems = (cart.cart || []).map(item =>
           `<div class="mb-1">
-            <strong>${escapeHtml(item.name)}</strong> × ${item.qty} 
-            <span class="text-blue-600">(${item.price} د.ل)</span>
+            <strong>${escapeHtml(item.name)}</strong> × ${escapeHtml(String(item.qty))} 
+            <span class="text-blue-600">(${escapeHtml(String(item.price))} د.ل)</span>
           </div>`
-        ).join('') || '';
+        ).join('');
 
-        return `
-          <tr class="hover:bg-gray-50 transition-colors">
-            <td class="font-medium">${escapeHtml(cart.fullName)}</td>
-            <td>${escapeHtml(cart.email)}</td>
-            <td class="font-bold text-blue-600">${cart.cart?.length || 0}</td>
-            <td class="max-w-xs">${cartItems}</td>
-            <td class="text-sm text-gray-500">${formatDateTime(cart.updatedAt)}</td>
-            <td>
-              <button class="action-btn danger" onclick="deleteCart('${cart._id}', '${escapeHtml(cart.fullName)}')">
-                <i class="fa fa-trash ml-1"></i>حذف
-              </button>
-            </td>
-          </tr>
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-gray-50 transition-colors";
+        const cid = String(cart._id || "");
+        tr.innerHTML = `
+          <td class="font-medium">${escapeHtml(cart.fullName)}</td>
+          <td>${escapeHtml(cart.email)}</td>
+          <td class="font-bold text-blue-600">${escapeHtml(String(cart.cart?.length || 0))}</td>
+          <td class="max-w-xs">${cartItems}</td>
+          <td class="text-sm text-gray-500">${escapeHtml(formatDateTime(cart.updatedAt))}</td>
+          <td></td>
         `;
-      }).join('');
+        const btn = document.createElement('button');
+        btn.className = "action-btn danger";
+        btn.innerHTML = '<i class="fa fa-trash ml-1"></i>حذف';
+        btn.addEventListener('click', () => deleteCart(cid, String(cart.fullName || "")));
+        tr.lastElementChild.appendChild(btn);
+        tbody.appendChild(tr);
+      });
     }
 
     window.deleteCart = async function(cartId, userName) {
-      if (!confirm(`هل أنت متأكد من حذف سلة "${userName}" نهائياً؟`)) {
+      if (!confirm(`هل أنت متأكد من حذف سلة "${String(userName).slice(0, 100)}" نهائياً؟`)) {
         return;
       }
 
       try {
-        const response = await fetch(`${API_BASE}/admin/carts/${cartId}`, {
+        const response = await adminFetch(`${API_BASE}/admin/carts/${encodeURIComponent(cartId)}`, {
           method: "DELETE",
           credentials: "include",
           headers: { 'Content-Type': 'application/json' }
@@ -1253,7 +1303,7 @@
       isLoading = true;
 
       try {
-        const response = await fetch(`${API_BASE}/admin/products`, {
+        const response = await adminFetch(`${API_BASE}/admin/products`, {
           credentials: "include",
           headers: { 'Content-Type': 'application/json' }
         });
@@ -1280,53 +1330,61 @@
         return;
       }
 
-      tbody.innerHTML = products.map(product => {
-        const stars = Array.from({length: 5}, (_, i) => 
-          `<i class="fa${i < Math.round(product.rating || 0) ? 's' : 'r'} fa-star stars"></i>`
-        ).join('');
-        
-        const tags = Array.isArray(product.tags) ? 
-          product.tags.map(tag => `<span class="tag">${escapeHtml(tag)}</span>`).join('') : '';
-        
-        let extraTags = '';
-        if ((product.sold || 0) > 30) {
-          extraTags += '<span class="tag tag-bestseller">الأكثر مبيعاً</span>';
-        }
-        if (Date.now() - (product.added || 0) <= 1000 * 60 * 60 * 24 * 14) {
-          extraTags += '<span class="tag tag-new">جديد</span>';
-        }
-        
-        const images = (product.images || []).map(img => 
-          `<img src="${escapeHtml(img)}" class="product-image" alt="صورة المنتج" onerror="this.src='https://via.placeholder.com/60x60?text=صورة'">`
+      window._adminProducts = products;
+      tbody.replaceChildren();
+      products.forEach(product => {
+        const stars = Array.from({length: 5}, (_, i) =>
+          `<i class="fa${i < Math.round(Number(product.rating) || 0) ? 's' : 'r'} fa-star stars"></i>`
         ).join('');
 
-        return `
-          <tr class="hover:bg-gray-50 transition-colors">
-            <td class="font-medium">${escapeHtml(product.name)}</td>
-            <td class="max-w-xs text-sm">${escapeHtml(product.desc)}</td>
-            <td class="font-bold text-green-600">${product.price} د.ل</td>
-            <td class="font-medium ${product.stock < 10 ? 'text-red-600' : 'text-green-600'}">${product.stock}</td>
-            <td class="font-medium">${escapeHtml(product.category)}</td>
-            <td class="tag-container">${tags}${extraTags}</td>
-            <td class="tag-container" style="min-width:120px">${images}</td>
-            <td class="font-medium">${product.sold || 0}</td>
-            <td class="text-center">
-              <div>${stars}</div>
-              <div class="text-sm text-gray-500">${(product.rating || 0).toFixed(1)}</div>
-            </td>
-            <td class="font-medium">${product.reviews || 0}</td>
-            <td class="text-sm text-gray-500">${formatDateTime(product.added)}</td>
-            <td>
-              <button class="action-btn mb-1" onclick="openProductModal('${product._id}', ${encodeURIComponent(JSON.stringify(product))})">
-                <i class="fa fa-edit ml-1"></i>تعديل
-              </button>
-              <button class="action-btn danger" onclick="deleteProduct('${product._id}', '${escapeHtml(product.name)}')">
-                <i class="fa fa-trash ml-1"></i>حذف
-              </button>
-            </td>
-          </tr>
+        const tags = Array.isArray(product.tags) ?
+          product.tags.map(tag => `<span class="tag">${escapeHtml(tag)}</span>`).join('') : '';
+
+        let extraTags = '';
+        if (Number(product.sold || 0) > 30) {
+          extraTags += '<span class="tag tag-bestseller">الأكثر مبيعاً</span>';
+        }
+        const addedNum = typeof product.added === "number" ? product.added : Date.parse(product.added);
+        if (Number.isFinite(addedNum) && Date.now() - addedNum <= 1000 * 60 * 60 * 24 * 14) {
+          extraTags += '<span class="tag tag-new">جديد</span>';
+        }
+
+        const images = (product.images || []).map(img =>
+          `<img src="${safeImageUrl(img)}" class="product-image" alt="صورة المنتج" onerror="this.src='https://via.placeholder.com/60x60?text=صورة'">`
+        ).join('');
+
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-gray-50 transition-colors";
+        const pid = String(product._id || "");
+        tr.innerHTML = `
+          <td class="font-medium">${escapeHtml(product.name)}</td>
+          <td class="max-w-xs text-sm">${escapeHtml(product.desc)}</td>
+          <td class="font-bold text-green-600">${escapeHtml(String(product.price))} د.ل</td>
+          <td class="font-medium ${Number(product.stock) < 10 ? 'text-red-600' : 'text-green-600'}">${escapeHtml(String(product.stock))}</td>
+          <td class="font-medium">${escapeHtml(product.category)}</td>
+          <td class="tag-container">${tags}${extraTags}</td>
+          <td class="tag-container" style="min-width:120px">${images}</td>
+          <td class="font-medium">${escapeHtml(String(product.sold || 0))}</td>
+          <td class="text-center">
+            <div>${stars}</div>
+            <div class="text-sm text-gray-500">${escapeHtml(String(Number(product.rating || 0).toFixed(1)))}</div>
+          </td>
+          <td class="font-medium">${escapeHtml(String(product.reviews || 0))}</td>
+          <td class="text-sm text-gray-500">${escapeHtml(formatDateTime(product.added))}</td>
+          <td></td>
         `;
-      }).join('');
+        const actions = tr.lastElementChild;
+        const editBtn = document.createElement('button');
+        editBtn.className = "action-btn mb-1";
+        editBtn.innerHTML = '<i class="fa fa-edit ml-1"></i>تعديل';
+        editBtn.addEventListener('click', () => openProductModal(pid, product));
+        const delBtn = document.createElement('button');
+        delBtn.className = "action-btn danger";
+        delBtn.innerHTML = '<i class="fa fa-trash ml-1"></i>حذف';
+        delBtn.addEventListener('click', () => deleteProduct(pid, String(product.name || "")));
+        actions.append(editBtn, delBtn);
+        tbody.appendChild(tr);
+      });
     }
 
     // Product Modal Functions
@@ -1334,17 +1392,16 @@
       const modal = document.getElementById("productModal");
       const form = document.getElementById("productForm");
       const title = document.getElementById("productModalTitle");
-      const saveBtn = document.getElementById("productSaveBtn");
-      
+
       // Reset form and hide alerts
       form.reset();
       hideAlerts();
-      
-      if (id && productData) {
-        // Edit mode
-        const product = typeof productData === "string" ? 
-          JSON.parse(decodeURIComponent(productData)) : productData;
-        
+
+      if (id) {
+        // Edit mode - lookup from cache to avoid inline JSON
+        const product = (typeof productData === "object" && productData) ||
+          (Array.isArray(window._adminProducts) ? window._adminProducts.find(p => String(p._id) === String(id)) : null) ||
+          {};
         title.textContent = "تعديل المنتج";
         document.getElementById("productSaveBtn").innerHTML = '<span id="saveButtonText">تحديث المنتج</span><div class="loading hidden" id="saveButtonLoader"></div>';
         
@@ -1408,7 +1465,7 @@
         const url = isEdit ? `${API_BASE}/admin/products/${productId}` : `${API_BASE}/admin/products`;
         const method = isEdit ? "PUT" : "POST";
 
-        const response = await fetch(url, {
+        const response = await adminFetch(url, {
           method,
           headers: { "Content-Type": "application/json" },
           credentials: "include",
@@ -1439,12 +1496,12 @@
     }
 
     window.deleteProduct = async function(productId, productName) {
-      if (!confirm(`هل أنت متأكد من حذف المنتج "${productName}" نهائياً؟\nهذا الإجراء لا يمكن التراجع عنه.`)) {
+      if (!confirm(`هل أنت متأكد من حذف المنتج "${String(productName).slice(0, 100)}" نهائياً؟\nهذا الإجراء لا يمكن التراجع عنه.`)) {
         return;
       }
 
       try {
-        const response = await fetch(`${API_BASE}/admin/products/${productId}`, {
+        const response = await adminFetch(`${API_BASE}/admin/products/${encodeURIComponent(productId)}`, {
           method: "DELETE",
           credentials: "include",
           headers: { 'Content-Type': 'application/json' }
@@ -1485,33 +1542,44 @@
     function showEmptyState(tableId, message, icon) {
       const tbody = document.getElementById(tableId);
       const colSpan = tbody.closest('table').querySelectorAll('thead th').length;
-      
-      tbody.innerHTML = `
-        <tr>
-          <td colspan="${colSpan}" class="empty-state">
-            <i class="fa fa-${icon}"></i>
-            <h3 class="text-lg font-medium text-gray-600 mb-2">${message}</h3>
-            <p class="text-gray-500">لا توجد بيانات للعرض حالياً</p>
-          </td>
-        </tr>
-      `;
+      const safeIcon = /^[a-z-]+$/.test(icon) ? icon : "box";
+      tbody.replaceChildren();
+      const tr = document.createElement('tr');
+      const td = document.createElement('td');
+      td.colSpan = colSpan;
+      td.className = "empty-state";
+      const i = document.createElement('i');
+      i.className = `fa fa-${safeIcon}`;
+      const h3 = document.createElement('h3');
+      h3.className = "text-lg font-medium text-gray-600 mb-2";
+      h3.textContent = message;
+      const p = document.createElement('p');
+      p.className = "text-gray-500";
+      p.textContent = "لا توجد بيانات للعرض حالياً";
+      td.append(i, h3, p);
+      tr.appendChild(td);
+      tbody.appendChild(tr);
     }
 
     function showNotification(message, type = 'info') {
       // Create notification element
       const notification = document.createElement('div');
       notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transform transition-all duration-300 translate-x-full`;
+      const icon = document.createElement('i');
+      const text = document.createElement('span');
+      text.textContent = String(message ?? "");
       
       if (type === 'success') {
         notification.classList.add('bg-green-500', 'text-white');
-        notification.innerHTML = `<i class="fa fa-check-circle ml-2"></i>${message}`;
+        icon.className = "fa fa-check-circle ml-2";
       } else if (type === 'error') {
         notification.classList.add('bg-red-500', 'text-white');
-        notification.innerHTML = `<i class="fa fa-exclamation-circle ml-2"></i>${message}`;
+        icon.className = "fa fa-exclamation-circle ml-2";
       } else {
         notification.classList.add('bg-blue-500', 'text-white');
-        notification.innerHTML = `<i class="fa fa-info-circle ml-2"></i>${message}`;
+        icon.className = "fa fa-info-circle ml-2";
       }
+      notification.append(icon, text);
       
       document.body.appendChild(notification);
       
@@ -1657,6 +1725,10 @@
 
      document.getElementById("logoutBtn").addEventListener("click", function () {
     window.location.href = "admin2.html";
+  });
+     document.getElementById("adminLogoutBtn")?.addEventListener("click", async function () {
+    try { await apiFetch("/api/logout", { method: "POST" }); } catch {}
+    window.location.href = "Index.html";
   });
 
     // Search functionality (can be extended)

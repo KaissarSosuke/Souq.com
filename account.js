@@ -32,7 +32,6 @@ const loginModalHTML = `
 </div>
 `;
 
-const SERVER_URL = "https://back-end-klkg.onrender.com";
 let isAuthenticated = false;
 let userIconWrapper = null;
 let dropdownEl = null;
@@ -109,31 +108,24 @@ async function loginHandler(e) {
   if (!email || !password) return showLoginError("يرجى إدخال البريد الإلكتروني وكلمة المرور");
 
   try {
-    const res = await apiFetch("/api/signin", {
+    await apiFetch("/api/signin", {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
       body: JSON.stringify({ email, password })
     });
-    const result = res.apiBody || {};
-
-    if (res.ok) {
-      isAuthenticated = true;
-      showLoginSuccess("تم تسجيل دخولك بنجاح");
-      setTimeout(async () => {
-        closeLoginModal();
-        hideDropdown();
-        buildDropdownIfNeeded();
-        setUserIconLoggedIn();
-        await checkIfAdmin();
-        if (isAdmin) showAdminPanelBtn();
-        else removeAdminPanelBtn();
-      }, 1000);
-    } else {
-      showLoginError(result.message || "حدث خطأ أثناء تسجيل الدخول");
-    }
-  } catch {
-    showLoginError("تعذر الاتصال بالخادم");
+    isAuthenticated = true;
+    showLoginSuccess("تم تسجيل دخولك بنجاح");
+    setTimeout(async () => {
+      closeLoginModal();
+      hideDropdown();
+      dropdownEl = null;
+      buildDropdownIfNeeded();
+      setUserIconLoggedIn();
+      await checkIfAdmin();
+      if (isAdmin) showAdminPanelBtn();
+      else removeAdminPanelBtn();
+    }, 1000);
+  } catch (err) {
+    showLoginError(apiErrorMessage(err, "حدث خطأ أثناء تسجيل الدخول"));
   }
 }
 function showLoginError(msg) {
@@ -151,7 +143,9 @@ function showLoginSuccess(msg) {
 function setUserIconLoggedIn() {
   const iconEl = document.querySelector('.fa-user');
   if (iconEl) {
-    iconEl.className = '';
+    if (iconEl.dataset.loggedIn === "1") return;
+    iconEl.dataset.loggedIn = "1";
+    iconEl.classList.remove('fa-user');
     iconEl.innerHTML = '';
     const img = document.createElement('img');
     img.src = 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Default_pfp.svg/2048px-Default_pfp.svg.png';
@@ -164,13 +158,26 @@ function setUserIconLoggedIn() {
   }
 }
 function restoreUserIconDefault() {
+  const iconEl = document.querySelector('[data-logged-in="1"]');
   const img = document.querySelector('.user-icon-img');
-  if (img) {
+  if (img) img.remove();
+  if (iconEl) {
+    delete iconEl.dataset.loggedIn;
+    iconEl.classList.add('fa-user');
+    if (!iconEl.querySelector('i,img,svg')) {
+      const i = document.createElement('i');
+      i.className = 'fas fa-user text-2xl';
+      // حافظ على حجم الأيقونة الأصلية إن وجد
+      iconEl.appendChild(i);
+    }
+  } else if (img) {
     const parent = img.parentElement;
     img.remove();
-    const i = document.createElement('i');
-    i.className = 'fa fa-user';
-    parent.appendChild(i);
+    if (parent) {
+      const i = document.createElement('i');
+      i.className = 'fas fa-user text-2xl';
+      parent.appendChild(i);
+    }
   }
 }
 
@@ -178,54 +185,50 @@ function restoreUserIconDefault() {
 async function logoutHandler() {
   try {
     await apiFetch("/api/logout", {
-      method: 'POST',
-      credentials: 'include'
+      method: 'POST'
     });
-    isAuthenticated = false;
-    isAdmin = false;
-    restoreUserIconDefault();
-    hideDropdown();
-    removeAdminPanelBtn();
-    window.location.reload();
-  } catch {
-    alert("تعذر الاتصال بالخادم");
-  }
+  } catch {}
+  isAuthenticated = false;
+  isAdmin = false;
+  restoreUserIconDefault();
+  hideDropdown();
+  dropdownEl = null;
+  removeAdminPanelBtn();
+  window.location.href = "Index.html";
 }
 
 // فحص حالة تسجيل الدخول عند التحميل
 async function checkLoginStatus() {
   try {
-    const res = await apiFetch("/api/profile", {
-      method: 'GET',
-      credentials: 'include'
+    await apiFetch("/api/profile", {
+      method: 'GET'
     });
-    if (res.ok) {
-      isAuthenticated = true;
-      closeLoginModal();
-      buildDropdownIfNeeded();
-      setUserIconLoggedIn();
-      await checkIfAdmin();
-      if (isAdmin) showAdminPanelBtn();
-      else removeAdminPanelBtn();
-    } else {
-      isAuthenticated = false;
-      isAdmin = false;
-      restoreUserIconDefault();
-      removeAdminPanelBtn();
+    isAuthenticated = true;
+    closeLoginModal();
+    buildDropdownIfNeeded();
+    setUserIconLoggedIn();
+    await checkIfAdmin();
+    if (isAdmin) showAdminPanelBtn();
+    else removeAdminPanelBtn();
+    return true;
+  } catch (err) {
+    if (err && err.status !== 401) {
+      // خطأ شبكة - حافظ على الحالة الحالية
+      return isAuthenticated;
     }
-  } catch {
     isAuthenticated = false;
     isAdmin = false;
     restoreUserIconDefault();
     removeAdminPanelBtn();
+    return false;
   }
 }
 
 // فحص هل المستخدم أدمن
 async function checkIfAdmin() {
   try {
-    const res = await apiFetch("/api/admin/me");
-    isAdmin = res.ok;
+    await apiFetch("/api/admin/me");
+    isAdmin = true;
   } catch {
     isAdmin = false;
   }

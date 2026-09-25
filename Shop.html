@@ -40,10 +40,10 @@
                     <span class="logo-gradient">سوق.كوم</span>
                 </a>
                 <!-- مربع البحث -->
-                <div class="hidden md:flex flex-1 mx-8">
+                <div class="flex flex-1 mx-4 md:mx-8">
                     <div class="relative w-full">
-                        <input id="searchInput" type="text" placeholder="ابحث عن منتجات أو أنواع..." class="w-full py-2 px-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <button id="searchBtn" class="absolute left-0 top-0 h-full px-4 text-gray-600">
+                        <input id="searchInput" type="search" placeholder="ابحث عن منتجات أو أنواع..." aria-label="بحث عن منتجات" class="w-full py-2 px-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <button id="searchBtn" aria-label="بحث" class="absolute left-0 top-0 h-full px-4 text-gray-600">
                             <i class="fas fa-search"></i>
                         </button>
                     </div>
@@ -62,7 +62,7 @@
                     <li><a href="Index.html" class="nav-link text-gray-700 hover:text-blue-600" data-page="Index.html">الرئيسية</a></li>
                     <li><a href="Shop.html" class="nav-link text-blue-600 font-medium active-link" data-page="Shop.html">تسوق</a></li>
                     <li><a href="AboutUs.html" class="nav-link text-gray-700 hover:text-blue-600" data-page="AboutUs.html">عنا</a></li>
-                    <li><a href="Contact.html" class="nav-link text-gray-700 hover:text-blue-600" data-page="Contact.html">توصل معنا</a></li>
+                    <li><a href="contact.html" class="nav-link text-gray-700 hover:text-blue-600" data-page="contact.html">تواصل معنا</a></li>
                 </ul>
             </nav>
         </div>
@@ -192,7 +192,7 @@
                         <li><a href="Shop.html" class="nav-link text-blue-600 active-link" data-page="Shop.html">المنتجات</a></li>
                         <li><a href="#" class="privacy-link text-gray-200 hover:text-white">سياسة الخصوصية</a></li>
                         <li><a href="#" class="terms-link text-gray-200 hover:text-white">شروط الاستخدام</a></li>
-                        <li><a href="Contact.html" class="nav-link text-gray-200 hover:text-white" data-page="Contact.html">توصل معنا</a></li>
+                        <li><a href="contact.html" class="nav-link text-gray-200 hover:text-white" data-page="contact.html">تواصل معنا</a></li>
                     </ul>
                 </div>
                 <div>
@@ -200,15 +200,14 @@
                     <div class="flex space-x-4 space-x-reverse mb-4">
                         <a href="https://www.facebook.com/share/1CEyEf8f9P/?mibextid=wwXIfr" target="_blank" class="text-gray-200 hover:text-white text-2xl"><i class="fab fa-facebook"></i></a>
                        
-                        <a href="https://www.instagram.com/souqdotcom0?igsh=MXBucmxjMWptcWxoOA%3D%3D&utm_source=qr
-" target="_blank" class="text-gray-200 hover:text-white text-2xl"><i class="fab fa-instagram"></i></a>
+                        <a href="https://www.instagram.com/souqdotcom0?igsh=MXBucmxjMWptcWxoOA%3D%3D&amp;utm_source=qr" target="_blank" class="text-gray-200 hover:text-white text-2xl"><i class="fab fa-instagram"></i></a>
                        <a href="https://www.tiktok.com/@souqdotcom?_t=ZM-8zQ6bPBXfRG&_r=1" target="_blank" class="text-gray-200 hover:text-white text-2xl"><i class="fab fa-tiktok"></i></a>
                     </div>
                    
                 </div>
             </div>
             <div class="border-t border-blue-400 mt-8 pt-8 text-center text-gray-300">
-                <p>© 2025 سوق.كوم. جميع الحقوق محفوظة.</p>
+                <p>© 2026 سوق.كوم. جميع الحقوق محفوظة.</p>
             </div>
         </div>
     </footer>
@@ -225,15 +224,14 @@
 
         // جلب المنتجات من الباك اند
         async function fetchProducts() {
-    let url = "https://back-end-klkg.onrender.com/api/products?"; 
-    if (searchTerm)
-        url += `search=${encodeURIComponent(searchTerm)}&`;
-    if (sortBy)
-        url += `sort=${encodeURIComponent(sortBy)}&`;
+    const params = new URLSearchParams();
+    if (searchTerm) params.set("search", searchTerm);
+    if (sortBy) params.set("sort", sortBy);
+    params.set("limit", "100");
     try {
-        const res = await fetch(url);
-        if (!res.ok) throw new Error("تعذر جلب المنتجات");
-        products = await res.json();
+        const res = await apiFetch(`/api/products?${params.toString()}`);
+        const body = res.apiBody;
+        products = Array.isArray(body) ? body : (body?.data || []);
 
         // فلترة حسب الكاتاغوري بالفرونت
         if (filteredCategory && filteredCategory !== "الكل") {
@@ -246,7 +244,8 @@
         renderProductsGrid();
     } catch (err) {
         document.getElementById('productsGrid').innerHTML =
-            '<div class="col-span-full text-center text-red-600 text-lg py-8">تعذر جلب المنتجات من الخادم.</div>';
+            '<div class="col-span-full text-center text-red-600 text-lg py-8">تعذر جلب المنتجات من الخادم. <button onclick="fetchProducts()" class="underline text-blue-600">إعادة المحاولة</button></div>';
+        document.getElementById('loadMoreBtn').style.display = "none";
     }
 }
 
@@ -275,39 +274,46 @@
             });
         }
 
+        function isNewProduct(product) {
+            const added = typeof product.added === "number" ? product.added : Date.parse(product.added);
+            if (!Number.isFinite(added)) return false;
+            return Date.now() - added <= 1000 * 60 * 60 * 24 * 14;
+        }
+
         function renderProductsGrid() {
             const grid = document.getElementById('productsGrid');
-            grid.innerHTML = "";
+            grid.replaceChildren();
             if (!filteredProducts.length) {
                 grid.innerHTML = '<div class="col-span-full text-center text-gray-500 text-xl py-8">لا توجد منتجات متاحة حالياً.</div>';
                 return;
             }
             filteredProducts.slice(0, productsToShow).forEach(product => {
+                const pid = String(product._id || product.id || "");
                 let extraTags = '';
-                if (product.sold > 30) extraTags += `<span class="tag tag-mostsold">الأكثر مبيعاً</span>`;
-                if (Date.now() - product.added <= 1000 * 60 * 60 * 24 * 14) extraTags += `<span class="tag tag-new">جديد</span>`;
+                if (Number(product.sold) > 30) extraTags += `<span class="tag tag-mostsold">الأكثر مبيعاً</span>`;
+                if (isNewProduct(product)) extraTags += `<span class="tag tag-new">جديد</span>`;
                 const card = document.createElement('div');
                 card.className = "product-card bg-white rounded-lg shadow-lg overflow-hidden transition duration-300 flex flex-col cursor-pointer border-2 border-blue-50 hover:border-blue-400";
-                card.onclick = () => openProductModal(product._id || product.id);
                 card.innerHTML = `
                     <div class="relative">
-                        <img src="${product.images && product.images[0] ? product.images[0] : ''}" alt="${product.name}" class="w-full h-56 object-cover">
+                        <img src="${safeImageUrl(product.images && product.images[0])}" alt="${escapeHtml(product.name)}" class="w-full h-56 object-cover">
                         <div class="absolute top-2 left-2 flex flex-col gap-1">
                             ${extraTags}
                         </div>
                     </div>
                     <div class="p-4 flex-1 flex flex-col">
-                        <h3 class="text-xl font-semibold text-blue-800 mb-2">${product.name}</h3>
+                        <h3 class="text-xl font-semibold text-blue-800 mb-2">${escapeHtml(product.name)}</h3>
                         <div class="mb-2 flex flex-wrap gap-1">
-                            ${Array.isArray(product.tags) ? product.tags.map(tag => `<span class="tag">${tag}</span>`).join('') : ''}
+                            ${Array.isArray(product.tags) ? product.tags.map(tag => `<span class="tag">${escapeHtml(tag)}</span>`).join('') : ''}
                         </div>
-                        <p class="text-gray-600 mb-4 flex-1">${product.desc || ''}</p>
+                        <p class="text-gray-600 mb-4 flex-1">${escapeHtml(product.desc || '')}</p>
                         <div class="flex items-center justify-between">
-                            <span class="text-blue-600 font-bold">${product.price} د.ل</span>
-                            <button class="primary-btn px-4 py-2 rounded-lg add-to-cart-btn" data-id="${product._id || product.id}" data-qty="1">أضف للسلة</button>
+                            <span class="text-blue-600 font-bold">${escapeHtml(String(product.price))} د.ل</span>
+                            <button class="primary-btn px-4 py-2 rounded-lg add-to-cart-btn" data-id="${escapeHtml(pid)}" data-qty="1">أضف للسلة</button>
                         </div>
                     </div>
                 `;
+                card.addEventListener('click', () => openProductModal(pid));
                 grid.appendChild(card);
             });
             document.getElementById('loadMoreBtn').style.display = (filteredProducts.length > productsToShow) ? "inline-block" : "none";
@@ -316,24 +322,29 @@
             document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
                 btn.onclick = async function(e) {
                     e.stopPropagation();
-                    await ensureLoginBeforeCart(async () => {
-                        await fetchCart?.();
-                        const productId = btn.getAttribute('data-id');
-                        const qty = parseInt(btn.getAttribute('data-qty'), 10);
-                        const product = products.find(p => (p._id || p.id) == productId);
-                        if (!product) return;
-                        let currentQty = 0;
-                        if (Array.isArray(window.userCart)) {
-                            const item = window.userCart.find(i => (i.productId == productId || i.productId == product._id || i.productId == product.id));
-                            if (item) currentQty = parseInt(item.qty) || 0;
-                        }
-                        if (currentQty + qty > product.stock) {
-                            alert(`لا يمكن إضافة أكثر من ${product.stock} قطعة من هذا المنتج للسلة.`);
-                            return;
-                        }
-                        await addToCart(productId, qty);
-                        await fetchCart?.();
-                    });
+                    btn.disabled = true;
+                    try {
+                        await ensureLoginBeforeCart(async () => {
+                            await fetchCart?.();
+                            const productId = btn.getAttribute('data-id');
+                            const qty = Number(btn.getAttribute('data-qty')) || 1;
+                            const product = products.find(p => String(p._id || p.id) === String(productId));
+                            if (!product) return;
+                            let currentQty = 0;
+                            if (Array.isArray(window.userCart)) {
+                                const item = window.userCart.find(i => (String(i.productId) === String(productId) || String(i.productId) === String(product._id || product.id)));
+                                if (item) currentQty = Number(item.qty) || 0;
+                            }
+                            if (currentQty + qty > Number(product.stock)) {
+                                alert(`لا يمكن إضافة أكثر من ${product.stock} قطعة من هذا المنتج للسلة.`);
+                                return;
+                            }
+                            await addToCart(productId, qty);
+                            await fetchCart?.();
+                        });
+                    } finally {
+                        btn.disabled = false;
+                    }
                 };
             });
         }
@@ -364,56 +375,59 @@
         });
 
         function openProductModal(productId) {
-            modalProductId = productId;
-            const product = products.find(p => (p._id || p.id) == productId);
+            modalProductId = String(productId);
+            const product = products.find(p => String(p._id || p.id) === String(productId));
             if (!product) return;
+            const pid = escapeHtml(String(product._id || product.id || ""));
             let thumbs = '';
             if (Array.isArray(product.images)) {
                 product.images.forEach((img, idx) => {
-                    thumbs += `<img src="${img}" class="w-16 h-16 object-cover rounded product-img-thumb ${idx === 0 ? 'selected' : ''}" onclick="changeProductImg(${idx})">`;
+                    thumbs += `<img src="${safeImageUrl(img)}" alt="" class="w-16 h-16 object-cover rounded product-img-thumb ${idx === 0 ? 'selected' : ''}" data-idx="${idx}">`;
                 });
             }
-            const stars = Array.from({length: 5}, (_,i) => `<i class="fa${i < Math.round(product.rating) ? 's' : 'r'} fa-star text-yellow-400"></i>`).join('');
-            const tags = Array.isArray(product.tags) ? product.tags.map(tag => `<span class="tag">${tag}</span>`).join('') : '';
+            const stars = Array.from({length: 5}, (_,i) => `<i class="fa${i < Math.round(Number(product.rating) || 0) ? 's' : 'r'} fa-star text-yellow-400"></i>`).join('');
+            const tags = Array.isArray(product.tags) ? product.tags.map(tag => `<span class="tag">${escapeHtml(tag)}</span>`).join('') : '';
             let extraTags = '';
-            if (product.sold > 30) extraTags += `<span class="tag tag-mostsold">الأكثر مبيعاً</span>`;
-            if (product.added > Date.now() - 1000 * 60 * 60 * 24 * 14) extraTags += `<span class="tag tag-new">جديد</span>`;
+            if (Number(product.sold) > 30) extraTags += `<span class="tag tag-mostsold">الأكثر مبيعاً</span>`;
+            if (isNewProduct(product)) extraTags += `<span class="tag tag-new">جديد</span>`;
             document.getElementById('productDetails').innerHTML = `
                 <div class="flex flex-col md:flex-row gap-8">
                     <div class="flex flex-col items-center gap-4 flex-shrink-0">
-                        <img id="mainProdImg" src="${product.images && product.images[0] ? product.images[0] : ''}" class="w-64 h-64 object-cover rounded-lg border">
+                        <img id="mainProdImg" src="${safeImageUrl(product.images && product.images[0])}" alt="${escapeHtml(product.name)}" class="w-64 h-64 object-cover rounded-lg border">
                         <div class="flex gap-2 mt-2">${thumbs}</div>
                     </div>
                     <div class="flex-1 flex flex-col">
-                        <h3 class="text-2xl font-bold text-blue-800 mb-2">${product.name}</h3>
+                        <h3 class="text-2xl font-bold text-blue-800 mb-2">${escapeHtml(product.name)}</h3>
                         <div class="mb-2 flex flex-wrap gap-1">${tags}${extraTags}</div>
-                        <p class="text-gray-700 mb-2">${product.desc || ''}</p>
+                        <p class="text-gray-700 mb-2">${escapeHtml(product.desc || '')}</p>
                         <div class="flex items-center gap-2 mb-1">
                             ${stars}
-                            <span class="text-sm text-gray-600 ml-2">(${product.rating} | ${product.reviews} تقييم)</span>
+                            <span class="text-sm text-gray-600 ml-2">(${escapeHtml(String(product.rating))} | ${escapeHtml(String(product.reviews))} تقييم)</span>
                         </div>
                         <div class="mb-2 text-gray-600 text-sm">
-                            <span>عدد القطع المتبقية: <span class="font-bold text-blue-700">${product.stock}</span></span>
+                            <span>عدد القطع المتبقية: <span class="font-bold text-blue-700">${escapeHtml(String(product.stock))}</span></span>
                         </div>
-                        <div class="mb-3 text-2xl font-bold text-blue-700">${product.price} د.ل</div>
+                        <div class="mb-3 text-2xl font-bold text-blue-700">${escapeHtml(String(product.price))} د.ل</div>
                         <div class="flex items-center gap-2 mb-2">
                             <label for="prodQty" class="text-gray-700">الكمية:</label>
-                            <input id="prodQty" type="number" min="1" max="${product.stock}" value="1" class="w-16 border text-center rounded py-1 px-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <input id="prodQty" type="number" min="1" max="${escapeHtml(String(product.stock))}" value="1" class="w-16 border text-center rounded py-1 px-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
-                        <button onclick="addToCartModal('${product._id || product.id}', document.getElementById('prodQty').value)" class="primary-btn w-full py-3 rounded-lg font-medium text-lg">أضف للسلة</button>
+                        <button id="shopModalAddBtn" class="primary-btn w-full py-3 rounded-lg font-medium text-lg">أضف للسلة</button>
                     </div>
                 </div>
             `;
-            document.querySelectorAll('.product-img-thumb').forEach((thumb, idx) => {
+            document.getElementById('shopModalAddBtn').onclick = () => window.addToCartModal(pid, document.getElementById('prodQty').value);
+            document.querySelectorAll('.product-img-thumb').forEach((thumb) => {
+                const idx = Number(thumb.getAttribute('data-idx')) || 0;
                 thumb.onclick = function() { changeProductImg(idx); }
             });
             document.getElementById('productModal').classList.remove('hidden');
         }
 
         window.changeProductImg = function(idx) {
-            const product = products.find(p => (p._id || p.id) == modalProductId);
-            if (!product) return;
-            document.getElementById('mainProdImg').src = product.images[idx];
+            const product = products.find(p => String(p._id || p.id) === String(modalProductId));
+            if (!product || !product.images || !product.images[idx]) return;
+            document.getElementById('mainProdImg').src = safeImageUrl(product.images[idx]);
             document.querySelectorAll('.product-img-thumb').forEach((thumb, i) => {
                 thumb.classList.toggle('selected', i === idx);
             });
@@ -421,16 +435,16 @@
 
         window.addToCartModal = async function(productId, qty=1) {
             await ensureLoginBeforeCart(async () => {
-                qty = parseInt(qty, 10);
-                const product = products.find(p => (p._id || p.id) == productId);
+                qty = Math.max(1, Number(qty) || 1);
+                const product = products.find(p => String(p._id || p.id) === String(productId));
                 if (!product) return;
                 await fetchCart?.();
                 let currentQty = 0;
                 if (Array.isArray(window.userCart)) {
-                    const item = window.userCart.find(i => (i.productId == productId || i.productId == product._id || i.productId == product.id));
-                    if (item) currentQty = parseInt(item.qty) || 0;
+                    const item = window.userCart.find(i => (String(i.productId) === String(productId) || String(i.productId) === String(product._id || product.id)));
+                    if (item) currentQty = Number(item.qty) || 0;
                 }
-                if (qty + currentQty > product.stock) {
+                if (qty + currentQty > Number(product.stock)) {
                     alert(`لا يمكن إضافة أكثر من ${product.stock} قطعة من هذا المنتج للسلة.`);
                     return;
                 }
@@ -447,16 +461,11 @@
 
         // دالة مركزية للتحقق من تسجيل الدخول (تستخدم متغير account.js)
         async function ensureLoginBeforeCart(callback) {
-            if (typeof isAuthenticated !== "undefined" && isAuthenticated) {
-                callback();
-                return;
+            if (typeof checkLoginStatus === "function" && (typeof isAuthenticated === "undefined" || !isAuthenticated)) {
+                try { await checkLoginStatus(); } catch {}
             }
-            if (typeof checkLoginStatus === "function") {
-                await checkLoginStatus();
-                if (typeof isAuthenticated !== "undefined" && isAuthenticated) {
-                    callback();
-                    return;
-                }
+            if (typeof isAuthenticated !== "undefined" && isAuthenticated) {
+                return await callback();
             }
             if (typeof openLoginModal === "function") openLoginModal();
             else alert("يجب تسجيل الدخول أولاً.");

@@ -74,7 +74,7 @@
                     <li><a href="Index.html" class="nav-link text-gray-700 hover:text-blue-600" data-page="Index.html">الرئيسية</a></li>
                     <li><a href="Shop.html" class="nav-link text-gray-700 hover:text-blue-600" data-page="Shop.html">تسوق</a></li>
                     <li><a href="AboutUs.html" class="nav-link text-gray-700 hover:text-blue-600" data-page="AboutUs.html">عنا</a></li>
-                    <li><a href="Contact.html" class="nav-link text-blue-600 active-link" data-page="Contact.html">تواصل معنا</a></li>
+                    <li><a href="contact.html" class="nav-link text-blue-600 active-link" data-page="contact.html">تواصل معنا</a></li>
                 </ul>
             </nav>
         </div>
@@ -115,7 +115,7 @@
                 <div class="bg-blue-50 rounded-lg p-6 shadow-sm">
                     <i class="fas fa-phone-alt text-3xl text-blue-600 mb-4"></i>
                     <h3 class="text-xl font-bold mb-2">الهاتف</h3>
-                    <p class="text-gray-600 select-all">218916773527+</p>
+                    <p class="text-gray-600 select-all" dir="ltr">+218916773527</p>
                 </div>
                 <div class="bg-blue-50 rounded-lg p-6 shadow-sm">
                     <i class="fas fa-map-marker-alt text-3xl text-blue-600 mb-4"></i>
@@ -217,7 +217,7 @@
                         <li><a href="Shop.html" class="nav-link text-gray-200 hover:text-white" data-page="Shop.html">المنتجات</a></li>
                         <li><a href="#" class="privacy-link text-gray-200 hover:text-white">سياسة الخصوصية</a></li>
                         <li><a href="#" class="terms-link text-gray-200 hover:text-white">شروط الاستخدام</a></li>
-                        <li><a href="Contact.html" class="nav-link text-blue-600 active-link" data-page="Contact.html">تواصل معنا</a></li>
+                        <li><a href="contact.html" class="nav-link text-blue-600 active-link" data-page="contact.html">تواصل معنا</a></li>
                     </ul>
                 </div>
                 <div>
@@ -225,15 +225,14 @@
                     <div class="flex space-x-4 space-x-reverse mb-4">
                         <a href="https://www.facebook.com/share/1CEyEf8f9P/?mibextid=wwXIfr" target="_blank" class="text-gray-200 hover:text-white text-2xl"><i class="fab fa-facebook"></i></a>
                        
-                        <a href="https://www.instagram.com/souqdotcom0?igsh=MXBucmxjMWptcWxoOA%3D%3D&utm_source=qr
-" target="_blank" class="text-gray-200 hover:text-white text-2xl"><i class="fab fa-instagram"></i></a>
+                        <a href="https://www.instagram.com/souqdotcom0?igsh=MXBucmxjMWptcWxoOA%3D%3D&amp;utm_source=qr" target="_blank" class="text-gray-200 hover:text-white text-2xl"><i class="fab fa-instagram"></i></a>
                        <a href="https://www.tiktok.com/@souqdotcom?_t=ZM-8zQ6bPBXfRG&_r=1" target="_blank" class="text-gray-200 hover:text-white text-2xl"><i class="fab fa-tiktok"></i></a>
                     </div>
                     
                 </div>
             </div>
             <div class="border-t border-blue-400 mt-8 pt-8 text-center text-gray-300">
-                <p>© 2025 سوق.كوم. جميع الحقوق محفوظة.</p>
+                <p>© 2026 سوق.كوم. جميع الحقوق محفوظة.</p>
             </div>
         </div>
     </footer>
@@ -249,25 +248,17 @@
             const successMsg = document.getElementById('successMsg');
 
             try {
-                const res = await fetch("https://back-end-klkg.onrender.com/api/contact", {
+                const res = await apiFetch("/api/contact", {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ name, email, message })
                 });
-
-                const data = await res.json();
-                if (res.ok) {
-                    successMsg.textContent = data.message || "تم إرسال رسالتك بنجاح!";
-                    successMsg.classList.remove("hidden", "text-red-600");
-                    successMsg.classList.add("text-green-600");
-                    document.getElementById('contactForm').reset();
-                } else {
-                    successMsg.textContent = data.message || "تعذر إرسال الرسالة.";
-                    successMsg.classList.remove("hidden", "text-green-600");
-                    successMsg.classList.add("text-red-600");
-                }
+                const data = res.apiBody || {};
+                successMsg.textContent = data.message || "تم إرسال رسالتك بنجاح!";
+                successMsg.classList.remove("hidden", "text-red-600");
+                successMsg.classList.add("text-green-600");
+                document.getElementById('contactForm').reset();
             } catch (err) {
-                successMsg.textContent = "خطأ في الاتصال بالخادم.";
+                successMsg.textContent = apiErrorMessage(err, "تعذر إرسال الرسالة.");
                 successMsg.classList.remove("hidden", "text-green-600");
                 successMsg.classList.add("text-red-600");
             }
@@ -298,16 +289,12 @@
         }
 
         // فتح مودال الحساب
-        document.getElementById('userIcon').addEventListener('click', function(e) {
+        document.getElementById('userIcon')?.addEventListener('click', function(e) {
             e.preventDefault();
-            openModal();
+            if (typeof openLoginModal === "function") openLoginModal();
         });
 
-        // زر السلة (يتم إدراجه من Cart.js)
-        document.getElementById('cartBtn')?.addEventListener('click', function(e) {
-            e.preventDefault();
-            if (typeof showCart === "function") showCart();
-        });
+        // زر السلة (يتم إدراجه من Cart.js) - Cart.js يربط الحدث تلقائياً عند DOMContentLoaded
     </script>
 </body>
 </html>

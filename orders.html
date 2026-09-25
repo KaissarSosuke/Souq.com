@@ -342,26 +342,26 @@
     async function fetchUserOrders() {
       try {
         const resProfile = await apiFetch("/api/profile", { timeout: 15000 });
-        if (!resProfile.ok) {
+        const profile = resProfile.apiBody || {};
+        userEmail = profile.email;
+        const res = await apiFetch("/api/orders/me", { timeout: 15000 });
+        orders = res.apiBody || [];
+        if (!Array.isArray(orders)) orders = [];
+        renderOrders();
+      } catch (err) {
+        if (err && err.status === 401) {
           window.location.href = "signUp.html";
           return;
         }
-        const profile = resProfile.apiBody || await resProfile.json();
-        userEmail = profile.email;
-        const res = await apiFetch("/api/orders/me", { timeout: 15000 });
-        if (!res.ok) throw new Error("تعذر جلب الطلبات");
-        orders = res.apiBody || await res.json();
-        renderOrders();
-      } catch {
         document.getElementById('ordersContainer').innerHTML =
-          `<div class="empty-orders">تعذر جلب الطلبات! حاول لاحقاً.</div>`;
+          `<div class="empty-orders">تعذر جلب الطلبات! <button onclick="fetchUserOrders()" class="underline text-blue-600">إعادة المحاولة</button></div>`;
       }
     }
 
     async function fetchUserRating(orderId, productId) {
       try {
-        const res = await fetch(`https://back-end-klkg.onrender.com/api/rate/user?orderId=${orderId}&productId=${productId}`, { credentials: 'include' });
-        if (res.ok) return await res.json();
+        const res = await apiFetch(`/api/rate/user?orderId=${encodeURIComponent(orderId)}&productId=${encodeURIComponent(productId)}`);
+        return res.apiBody || null;
       } catch {}
       return null;
     }
@@ -390,22 +390,28 @@
       for (const order of orders.slice().reverse()) {
         let productsHtml = '';
         for (const item of order.cart) {
+          const itemPid = String(item.productId || '');
+          const starsId = `rating-stars-${String(order._id)}-${itemPid}`;
+          const noteId = `rating-note-${String(order._id)}-${itemPid}`;
+          const btnId = `rating-btn-${String(order._id)}-${itemPid}`;
+          const succId = `rating-success-${String(order._id)}-${itemPid}`;
+          const errId = `rating-error-${String(order._id)}-${itemPid}`;
           productsHtml += `
-            <div class="order-product" data-order-id="${escapeHtml(String(order._id || ''))}" data-product-id="${escapeHtml(String(item.productId || ''))}">
-              <img src="${escapeHtml(String(item.images && item.images[0] ? item.images[0] : ''))}" class="order-product-img" alt="${escapeHtml(String(item.name || ''))}">
+            <div class="order-product" data-order-id="${escapeHtml(String(order._id || ''))}" data-product-id="${escapeHtml(itemPid)}">
+              <img src="${safeImageUrl(item.images && item.images[0] ? item.images[0] : '')}" class="order-product-img" alt="${escapeHtml(String(item.name || ''))}">
               <div style="min-width:0;">
                 <div class="order-product-title">${escapeHtml(String(item.name || ''))}</div>
                 <div class="order-product-meta">${escapeHtml(String(item.price || 0))} د.ل × ${escapeHtml(String(item.qty || 0))}</div>
               </div>
-              <div class="order-product-price">${escapeHtml(String((item.price || 0) * (item.qty || 0)))} د.ل</div>
+              <div class="order-product-price">${escapeHtml(String((Number(item.price) || 0) * (Number(item.qty) || 0)))} د.ل</div>
               ${
                 order.status === "تم التوصيل"
                 ? `<div class="w-full mt-2" style="flex-basis:100%;display:block;">
-                    <div class="flex items-center gap-1 mb-1" id="rating-stars-${order._id}-${item.productId}"></div>
-                    <textarea id="rating-note-${order._id}-${item.productId}" rows="1" maxlength="2000" class="rating-note-area" placeholder="اكتب ملاحظتك (اختياري)"></textarea>
-                    <button class="rating-btn" id="rating-btn-${order._id}-${item.productId}"><i class="fa fa-star"></i> إرسال التقييم</button>
-                    <div class="text-success hidden" id="rating-success-${order._id}-${item.productId}"></div>
-                    <div class="text-error hidden" id="rating-error-${order._id}-${item.productId}"></div>
+                    <div class="flex items-center gap-1 mb-1" id="${escapeHtml(starsId)}"></div>
+                    <textarea id="${escapeHtml(noteId)}" rows="1" maxlength="2000" class="rating-note-area" placeholder="اكتب ملاحظتك (اختياري)"></textarea>
+                    <button class="rating-btn" id="${escapeHtml(btnId)}"><i class="fa fa-star"></i> إرسال التقييم</button>
+                    <div class="text-success hidden" id="${escapeHtml(succId)}"></div>
+                    <div class="text-error hidden" id="${escapeHtml(errId)}"></div>
                   </div>`
                 : ''
               }
@@ -425,21 +431,24 @@
         container.innerHTML += `
           <div class="order-box">
             <div class="${statusClass(order.status)}">
-              <i class="fas fa-circle mr-1" style="font-size:.85em"></i> ${order.status}
+              <i class="fas fa-circle mr-1" style="font-size:.85em"></i> ${escapeHtml(String(order.status || ''))}
             </div>
             <div class="order-products-list">${productsHtml}</div>
             <div class="order-summary-row">
               <span class="order-summary-label">الإجمالي:</span>
-              <span class="order-summary-value">${order.total} د.ل</span>
+              <span class="order-summary-value">${escapeHtml(String(order.total))} د.ل</span>
             </div>
             ${address}
-            <div class="text-sm text-gray-600 mb-1">تاريخ الطلب: ${formatDate(order.createdAt)}</div>
-            <button class="cancel-btn" ${!cancelable ? "disabled" : ""} onclick="showCancelModal('${order._id}')">
+            <div class="text-sm text-gray-600 mb-1">تاريخ الطلب: ${escapeHtml(formatDate(order.createdAt))}</div>
+            <button class="cancel-btn" ${!cancelable ? "disabled" : ""} data-cancel-id="${escapeHtml(String(order._id))}">
               <i class="fas fa-ban"></i> إلغاء الطلب
             </button>
           </div>
         `;
       }
+      container.querySelectorAll('[data-cancel-id]').forEach(btn => {
+        btn.addEventListener('click', () => showCancelModal(btn.getAttribute('data-cancel-id')));
+      });
 
       // تفعيل التقييم للمنتجات المستلمة
       document.querySelectorAll('.order-product').forEach(async el => {
@@ -471,10 +480,13 @@
           return;
         }
 
-        renderRatingStars(ratingStarsDiv, selectedRating, false, (val) => {
-          selectedRating = val;
-          renderRatingStars(ratingStarsDiv, selectedRating, false, arguments.callee);
-        });
+        function paintStars() {
+          renderRatingStars(ratingStarsDiv, selectedRating, false, (val) => {
+            selectedRating = val;
+            paintStars();
+          });
+        }
+        paintStars();
 
         btn.onclick = async function() {
           errMsg.classList.add("hidden");
@@ -487,30 +499,21 @@
           btn.disabled = true;
           btn.innerHTML = `<i class="fa fa-spinner fa-spin"></i> ...يرسل`;
           try {
-            const res = await fetch("https://back-end-klkg.onrender.com/api/rate", {
+            const res = await apiFetch("/api/rate", {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
-              credentials: "include",
               body: JSON.stringify({
                 orderId, productId, rating: selectedRating, note: noteInput.value.trim()
               })
             });
-            const result = await res.json();
-            if (res.ok) {
-              renderRatingStars(ratingStarsDiv, selectedRating, true, ()=>{});
-              noteInput.readOnly = true;
-              btn.disabled = true;
-              btn.textContent = "تم التقييم";
-              succMsg.textContent = "تم إرسال تقييمك لهذا المنتج. شكرًا لك!";
-              succMsg.classList.remove("hidden");
-            } else {
-              errMsg.textContent = result.message || "حدث خطأ أثناء إرسال التقييم";
-              errMsg.classList.remove("hidden");
-              btn.disabled = false;
-              btn.innerHTML = `<i class="fa fa-star"></i> إرسال التقييم`;
-            }
-          } catch {
-            errMsg.textContent = "تعذر الاتصال بالخادم.";
+            const result = res.apiBody || {};
+            renderRatingStars(ratingStarsDiv, selectedRating, true, ()=>{});
+            noteInput.readOnly = true;
+            btn.disabled = true;
+            btn.textContent = "تم التقييم";
+            succMsg.textContent = "تم إرسال تقييمك لهذا المنتج. شكرًا لك!";
+            succMsg.classList.remove("hidden");
+          } catch (err) {
+            errMsg.textContent = apiErrorMessage(err, "حدث خطأ أثناء إرسال التقييم");
             errMsg.classList.remove("hidden");
             btn.disabled = false;
             btn.innerHTML = `<i class="fa fa-star"></i> إرسال التقييم`;
@@ -545,22 +548,16 @@
       document.getElementById('cancelLoading').classList.remove('hidden');
       this.disabled = true;
       try {
-        const res = await fetch(`https://back-end-klkg.onrender.com/api/orders/${cancelOrderId}/cancel`, {
-          method: "PUT",
-          credentials: "include"
+        const res = await apiFetch(`/api/orders/${encodeURIComponent(cancelOrderId)}/cancel`, {
+          method: "PUT"
         });
-        const result = await res.json();
-        if (res.ok) {
-          const order = orders.find(o => o._id === cancelOrderId);
-          if (order) order.status = "ملغي";
-          closeCancelModal();
-          renderOrders();
-        } else {
-          document.getElementById('cancelError').textContent = result.message || "تعذر إلغاء الطلب.";
-          document.getElementById('cancelError').classList.remove('hidden');
-        }
-      } catch {
-        document.getElementById('cancelError').textContent = "تعذر الاتصال بالخادم.";
+        const result = res.apiBody || {};
+        const order = orders.find(o => String(o._id) === String(cancelOrderId));
+        if (order) order.status = "ملغي";
+        closeCancelModal();
+        await renderOrders();
+      } catch (err) {
+        document.getElementById('cancelError').textContent = apiErrorMessage(err, "تعذر إلغاء الطلب.");
         document.getElementById('cancelError').classList.remove('hidden');
       }
       document.getElementById('cancelLoading').classList.add('hidden');

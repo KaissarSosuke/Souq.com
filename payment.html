@@ -265,17 +265,16 @@
     let total = 0;
     async function fetchCartForPayment() {
       try {
-        const resProfile = await apiFetch("/api/profile", { timeout: 15000 });
-        if (!resProfile.ok) {
+        await apiFetch("/api/profile", { timeout: 15000 });
+        const res = await apiFetch("/api/user-cart/me", { timeout: 15000 });
+        const body = res.apiBody || {};
+        userCart = Array.isArray(body.items) ? body.items : [];
+        renderCartSummary();
+      } catch (err) {
+        if (err && err.status === 401) {
           window.location.href = "signUp.html";
           return;
         }
-        const profile = resProfile.apiBody || await resProfile.json();
-        const res = await apiFetch("/api/user-cart/me", { timeout: 15000 });
-        const body = res.apiBody || await res.json();
-        userCart = Array.isArray(body.items) ? body.items : [];
-        renderCartSummary();
-      } catch {
         userCart = [];
         renderCartSummary();
       }
@@ -291,10 +290,10 @@
       let html = '';
       total = 0;
       userCart.forEach(item => {
-        const price = (parseInt(item.price) || 0) * (parseInt(item.qty) || 0);
+        const price = (Number(item.price) || 0) * (Number(item.qty) || 0);
         html += `
           <div class="order-item">
-            <img src="${escapeHtml(String(item.images && item.images[0] ? item.images[0] : ''))}" class="order-img" alt="${escapeHtml(String(item.name || ''))}">
+            <img src="${safeImageUrl(item.images && item.images[0] ? item.images[0] : '')}" class="order-img" alt="${escapeHtml(String(item.name || ''))}">
             <div class="order-item-desc">
               <div class="order-item-title">${escapeHtml(String(item.name || ''))}</div>
               <div class="order-item-meta">${escapeHtml(String(item.price || 0))} د.ل × ${escapeHtml(String(item.qty || 0))}</div>
@@ -338,32 +337,26 @@
         document.getElementById('orderError').classList.remove('hidden');
         return;
       }
-      document.getElementById('submitOrderBtn').disabled = true;
+      const submitBtn = document.getElementById('submitOrderBtn');
+      submitBtn.disabled = true;
+      submitBtn.dataset.busy = "1";
       try {
-        const res = await fetch("https://back-end-klkg.onrender.com/api/payment", {
+        const res = await apiFetch("/api/payment", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
           body: JSON.stringify(data)
         });
-        const result = await res.json();
-        if (res.ok) {
-          document.getElementById('orderSuccess').textContent = "تم إرسال الطلب بنجاح! سنتواصل معك قريباً.";
-          document.getElementById('orderSuccess').classList.remove('hidden');
-          await fetch("https://back-end-klkg.onrender.com/api/user-cart/clear", {
-            method: "POST",
-            credentials: "include"
-          });
-          setTimeout(() => { window.location.href = "Index.html"; }, 2600);
-        } else {
-          document.getElementById('orderError').textContent = result.message || "حدث خطأ أثناء إرسال الطلب";
-          document.getElementById('orderError').classList.remove('hidden');
-        }
-      } catch {
-        document.getElementById('orderError').textContent = "تعذر الاتصال بالخادم.";
+        const result = res.apiBody || {};
+        document.getElementById('orderSuccess').textContent = result.message || "تم إرسال الطلب بنجاح! سنتواصل معك قريباً.";
+        document.getElementById('orderSuccess').classList.remove('hidden');
+        // السلة حُذفت في الباك اند داخل نفس المعاملة - لا حاجة لاستدعاء clear منفصل
+        userCart = [];
+        setTimeout(() => { window.location.href = "Index.html"; }, 2600);
+      } catch (err) {
+        document.getElementById('orderError').textContent = apiErrorMessage(err, "حدث خطأ أثناء إرسال الطلب");
         document.getElementById('orderError').classList.remove('hidden');
+        submitBtn.disabled = false;
+        delete submitBtn.dataset.busy;
       }
-      document.getElementById('submitOrderBtn').disabled = false;
     });
   </script>
 </body>

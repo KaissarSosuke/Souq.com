@@ -175,20 +175,22 @@
     </div>
 
 <script>
-const SERVER_URL = "https://back-end-klkg.onrender.com";
 let userProfile = null;
 
 // جلب بيانات المستخدم
 async function fetchProfile() {
     try {
-        const res = await fetch(SERVER_URL + '/api/profile', { credentials: "include" });
-        if (!res.ok) throw new Error();
-        userProfile = await res.json();
+        const res = await apiFetch('/api/profile');
+        userProfile = res.apiBody || {};
         document.getElementById('userFullName').textContent = userProfile.fullName || "";
         document.getElementById('userEmail').textContent = userProfile.email || "";
-    } catch {
+    } catch (err) {
+        if (err && err.status === 401) {
+            window.location.href = "signUp.html";
+            return;
+        }
         document.getElementById('settingsContent').innerHTML =
-            '<div class="text-center text-red-500 text-lg my-10">يجب تسجيل الدخول أولاً!</div>';
+            '<div class="text-center text-red-500 text-lg my-10">تعذر جلب البيانات! <button onclick="fetchProfile()" class="underline text-blue-600">إعادة المحاولة</button></div>';
     }
 }
 fetchProfile();
@@ -214,23 +216,17 @@ document.getElementById('formEditName').onsubmit = async function(e) {
     }
     document.getElementById('nameEditError').textContent = "";
     try {
-        const res = await fetch(SERVER_URL + "/api/settings/profile", {
+        const res = await apiFetch("/api/settings/profile", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
             body: JSON.stringify({ fullName })
         });
-        if (res.ok) {
-            document.getElementById('nameEditSuccess').classList.remove('hidden');
-            userProfile.fullName = fullName;
-            document.getElementById('userFullName').textContent = fullName;
-            setTimeout(()=>closeModal('modalEditNameBg'), 1200);
-        } else {
-            const data = await res.json();
-            document.getElementById('nameEditError').textContent = data.message || "حدث خطأ";
-        }
-    } catch {
-        document.getElementById('nameEditError').textContent = "تعذر الاتصال بالخادم";
+        const data = res.apiBody || {};
+        document.getElementById('nameEditSuccess').classList.remove('hidden');
+        if (userProfile) userProfile.fullName = fullName;
+        document.getElementById('userFullName').textContent = fullName;
+        setTimeout(()=>closeModal('modalEditNameBg'), 1200);
+    } catch (err) {
+        document.getElementById('nameEditError').textContent = apiErrorMessage(err, "حدث خطأ");
     }
 };
 
@@ -262,33 +258,20 @@ document.getElementById('formEditPass').onsubmit = async function(e) {
     }
     document.getElementById('passEditError').textContent = "";
     try {
-        const res = await fetch(SERVER_URL + "/api/settings/password", {
+        const res = await apiFetch("/api/settings/password", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
             body: JSON.stringify({ currentPassword, newPassword })
         });
-        if (res.ok) {
-            document.getElementById('passEditSuccess').classList.remove('hidden');
-            setTimeout(()=>closeModal('modalEditPassBg'), 1200);
-        } else {
-            const data = await res.json();
-            document.getElementById('passEditError').textContent = data.message || "حدث خطأ";
-        }
-    } catch {
-        document.getElementById('passEditError').textContent = "تعذر الاتصال بالخادم";
+        document.getElementById('passEditSuccess').classList.remove('hidden');
+        document.getElementById('formEditPass').reset();
+        closePassView();
+        setTimeout(()=>closeModal('modalEditPassBg'), 1200);
+    } catch (err) {
+        document.getElementById('passEditError').textContent = apiErrorMessage(err, "حدث خطأ");
     }
 };
 
-// زر إظهار/إخفاء كلمة المرور الرئيسية
-let passVisible = false;
-document.getElementById('togglePassView').onclick = function() {
-    passVisible = !passVisible;
-    document.getElementById('starsText').textContent = passVisible && userProfile ? (userProfile.password || '********') : '********';
-    this.innerHTML = `<i class="fa fa-eye${passVisible ? '-slash' : ''}"></i>`;
-};
-
-// زر إظهار/إخفاء حقول المودال
+// زر إظهار/إخفاء حقول المودال (لا نعرض كلمة المرور المخزنة أبداً)
 function toggleFieldPassword(fieldId, btn) {
     const input = document.getElementById(fieldId);
     if (!input) return;

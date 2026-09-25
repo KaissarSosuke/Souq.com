@@ -82,7 +82,7 @@ async function fetchCart() {
 function updateCartCount() {
     const cartCountElem = document.getElementById('cartCount');
     if (cartCountElem) {
-        cartCountElem.textContent = userCart.reduce((acc, p) => acc + (parseInt(p.qty) || 0), 0);
+        cartCountElem.textContent = userCart.reduce((acc, p) => acc + (Number(p.qty) || 0), 0);
     }
 }
 
@@ -101,7 +101,7 @@ function showCart() {
         cartEmpty.style.display = 'none';
         let total = 0;
         userCart.forEach(item => {
-            total += (parseInt(item.price) || 0) * (parseInt(item.qty) || 0);
+            total += (Number(item.price) || 0) * (Number(item.qty) || 0);
             const row = document.createElement("div");
             row.className = "flex items-center justify-between border-b py-3";
             const image = document.createElement("img");
@@ -139,11 +139,10 @@ async function addToCart(productId, qty=1) {
 
     let productData = null;
     try {
-        const res = await apiFetch("/api/products");
-        if (res.ok) {
-            const products = await res.json();
-            productData = (res.apiBody || products).find(p => p._id === productId || p.id === productId);
-        }
+        const res = await apiFetch("/api/products?limit=100");
+        const body = res.apiBody;
+        const products = Array.isArray(body) ? body : (body?.data || body?.products || []);
+        productData = products.find(p => p._id === productId || p.id === productId);
     } catch {}
     if (!productData) {
         showToast({message: "تعذر جلب بيانات المنتج.", type: "error"});

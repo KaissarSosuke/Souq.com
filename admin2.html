@@ -631,6 +631,15 @@
 
   <script>
     const API_BASE = "https://back-end-klkg.onrender.com/api";
+    async function adminFetch(url, options = {}) {
+      const method = String(options.method || "GET").toUpperCase();
+      const headers = { ...(options.headers || {}) };
+      if (!["GET", "HEAD", "OPTIONS"].includes(method)) {
+        try { headers["X-CSRF-Token"] = await getCsrfToken(); } catch (e) { console.warn("CSRF token unavailable", e); }
+        if (options.body !== undefined && !headers["Content-Type"]) headers["Content-Type"] = "application/json";
+      }
+      return fetch(url, { ...options, method, headers, credentials: "include" });
+    }
     let isLoading = false;
     let deleteProductId = null;
     let deleteProductName = '';
@@ -645,7 +654,7 @@
     async function initializeApp() {
       try {
         // Check admin authentication
-        const response = await fetch(API_BASE + "/admin/me", { 
+        const response = await adminFetch(API_BASE + "/admin/me", { 
           credentials: "include",
           headers: { 'Content-Type': 'application/json' }
         });
@@ -750,7 +759,7 @@
       isLoading = true;
 
       try {
-        const response = await fetch(API_BASE + "/admin/products", {
+        const response = await adminFetch(API_BASE + "/admin/products", {
           credentials: "include",
           headers: { 'Content-Type': 'application/json' }
         });
@@ -778,24 +787,27 @@
         return;
       }
 
-      tbody.innerHTML = products.map(product => {
-  return `
-    <tr class="hover:bg-gray-50 transition-colors">
-      <td class="font-medium text-right">${escapeHtml(product.name)}</td>
-      <td>
-
-        <button class="action-btn mb-1" onclick="openEditModal('${product._id}')">
-  <i class="fa fa-edit ml-1"></i>تعديل
-         </button>
-
-        <button class="action-btn danger" onclick="openDeleteModal('${product._id}', '${escapeHtml(product.name)}')">
-          <i class="fa fa-trash ml-1"></i>حذف
-        </button>
-      </td>
-    </tr>
-  `;
-}).join('');
-
+      tbody.replaceChildren();
+      products.forEach(product => {
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-gray-50 transition-colors";
+        const pid = String(product._id || "");
+        const tdName = document.createElement('td');
+        tdName.className = "font-medium text-right";
+        tdName.textContent = product.name || "";
+        const tdActions = document.createElement('td');
+        const editBtn = document.createElement('button');
+        editBtn.className = "action-btn mb-1";
+        editBtn.innerHTML = '<i class="fa fa-edit ml-1"></i>تعديل';
+        editBtn.addEventListener('click', () => openEditModal(pid));
+        const delBtn = document.createElement('button');
+        delBtn.className = "action-btn danger";
+        delBtn.innerHTML = '<i class="fa fa-trash ml-1"></i>حذف';
+        delBtn.addEventListener('click', () => openDeleteModal(pid, String(product.name || "")));
+        tdActions.append(editBtn, document.createTextNode(" "), delBtn);
+        tr.append(tdName, tdActions);
+        tbody.appendChild(tr);
+      });
     }
 
     // تحويل بيانات المنتج إلى نص يمكن تمريره للدالة
@@ -852,7 +864,7 @@
 
       try {
         // First get all products
-        const productsResponse = await fetch(API_BASE + "/admin/products", {
+        const productsResponse = await adminFetch(API_BASE + "/admin/products", {
           credentials: "include",
           headers: { 'Content-Type': 'application/json' }
         });
@@ -862,7 +874,7 @@
         const products = await productsResponse.json();
         
         // Then get all orders to match ratings with user info and order details
-        const ordersResponse = await fetch(API_BASE + "/admin/orders", {
+        const ordersResponse = await adminFetch(API_BASE + "/admin/orders", {
           credentials: "include",
           headers: { 'Content-Type': 'application/json' }
         });
@@ -875,7 +887,7 @@
         // Get ratings for each product
         const ratingsPromises = products.map(async function(product) {
           try {
-            const response = await fetch(API_BASE + "/rate/product/" + product._id, {
+            const response = await adminFetch(API_BASE + "/rate/product/" + product._id, {
               credentials: "include",
               headers: { 'Content-Type': 'application/json' }
             });
@@ -978,7 +990,7 @@
       isLoading = true;
 
       try {
-        const response = await fetch(API_BASE + "/contact/messages", {
+        const response = await adminFetch(API_BASE + "/contact/messages", {
           credentials: "include",
           headers: { 'Content-Type': 'application/json' }
         });
@@ -1074,9 +1086,9 @@
     };
 
     window.openDeleteModal = function(productId, productName) {
-      deleteProductId = productId;
-      deleteProductName = productName;
-      document.getElementById("deleteMessage").textContent = 'هل أنت متأكد من حذف المنتج "' + productName + '" نهائياً؟ هذا الإجراء لا يمكن التراجع عنه.';
+      deleteProductId = String(productId || "");
+      deleteProductName = String(productName || "");
+      document.getElementById("deleteMessage").textContent = 'هل أنت متأكد من حذف المنتج "' + deleteProductName.slice(0, 100) + '" نهائياً؟ هذا الإجراء لا يمكن التراجع عنه.';
       document.getElementById("deleteModal").classList.remove("hidden");
       document.body.style.overflow = "hidden";
     };
@@ -1098,7 +1110,7 @@
         confirmBtn.innerHTML = '<div class="loading"></div>';
         confirmBtn.disabled = true;
 
-        const response = await fetch(API_BASE + "/admin/products/" + deleteProductId, {
+        const response = await adminFetch(API_BASE + "/admin/products/" + encodeURIComponent(deleteProductId), {
           method: "DELETE",
           credentials: "include",
           headers: { 'Content-Type': 'application/json' }
@@ -1135,14 +1147,20 @@
         // Get form values
         const nameValue = document.getElementById("productName").value.trim();
         const descValue = document.getElementById("productDesc").value.trim();
-        const priceValue = parseFloat(document.getElementById("productPrice").value);
-        const stockValue = parseInt(document.getElementById("productStock").value);
+        const priceValue = Number(document.getElementById("productPrice").value);
+        const stockValue = Number(document.getElementById("productStock").value);
         const categoryValue = document.getElementById("productCategory").value.trim();
         const tagsValue = document.getElementById("productTags").value;
         const imagesValue = document.getElementById("productImages").value;
-        const soldValue = parseInt(document.getElementById("productSold").value) || 0;
-        const ratingValue = parseFloat(document.getElementById("productRating").value) || 0;
-        const reviewsValue = parseInt(document.getElementById("productReviews").value) || 0;
+        const soldValue = Number(document.getElementById("productSold").value) || 0;
+        const ratingValue = Number(document.getElementById("productRating").value) || 0;
+        const reviewsValue = Number(document.getElementById("productReviews").value) || 0;
+        if (!nameValue || !descValue || !categoryValue) { showProductAlert('يرجى تعبئة جميع الحقول المطلوبة', 'error'); return; }
+        if (!Number.isFinite(priceValue) || priceValue < 0) { showProductAlert('السعر غير صالح', 'error'); return; }
+        if (!Number.isInteger(stockValue) || stockValue < 0) { showProductAlert('المخزون غير صالح', 'error'); return; }
+        if (!Number.isInteger(soldValue) || soldValue < 0) { showProductAlert('قيمة المبيعات غير صالحة', 'error'); return; }
+        if (!Number.isFinite(ratingValue) || ratingValue < 0 || ratingValue > 5) { showProductAlert('التقييم يجب أن يكون بين 0 و 5', 'error'); return; }
+        if (!Number.isInteger(reviewsValue) || reviewsValue < 0) { showProductAlert('عدد المراجعات غير صالح', 'error'); return; }
         
         // Process tags
         let tagsArray = [];
@@ -1178,9 +1196,10 @@
         };
 
         const productId = document.getElementById("productId").value;
-        const url = API_BASE + "/admin/products/" + productId;
+        if (!/^[a-fA-F0-9]{24}$/.test(productId)) { showProductAlert('معرف المنتج غير صالح', 'error'); return; }
+        const url = API_BASE + "/admin/products/" + encodeURIComponent(productId);
 
-        const response = await fetch(url, {
+        const response = await adminFetch(url, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
@@ -1234,14 +1253,23 @@
     function showEmptyState(tableId, message, icon, colSpan) {
       colSpan = colSpan || 12;
       const tbody = document.getElementById(tableId);
-      
-      tbody.innerHTML = '<tr>' +
-        '<td colspan="' + colSpan + '" class="empty-state">' +
-          '<i class="fa fa-' + icon + '"></i>' +
-          '<h3 class="text-lg font-medium text-gray-600 mb-2">' + message + '</h3>' +
-          '<p class="text-gray-500">لا توجد بيانات للعرض حالياً</p>' +
-        '</td>' +
-      '</tr>';
+      const safeIcon = /^[a-z-]+$/.test(icon) ? icon : "box";
+      tbody.replaceChildren();
+      const tr = document.createElement('tr');
+      const td = document.createElement('td');
+      td.colSpan = colSpan;
+      td.className = "empty-state";
+      const i = document.createElement('i');
+      i.className = 'fa fa-' + safeIcon;
+      const h3 = document.createElement('h3');
+      h3.className = "text-lg font-medium text-gray-600 mb-2";
+      h3.textContent = message;
+      const p = document.createElement('p');
+      p.className = "text-gray-500";
+      p.textContent = "لا توجد بيانات للعرض حالياً";
+      td.append(i, h3, p);
+      tr.appendChild(td);
+      tbody.appendChild(tr);
     }
 
     function showNotification(message, type) {
@@ -1249,17 +1277,20 @@
       // Create notification element
       const notification = document.createElement('div');
       notification.className = 'fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transform transition-all duration-300 translate-x-full';
-      
+      const icon = document.createElement('i');
+      const text = document.createElement('span');
+      text.textContent = String(message ?? "");
       if (type === 'success') {
         notification.classList.add('bg-green-500', 'text-white');
-        notification.innerHTML = '<i class="fa fa-check-circle ml-2"></i>' + message;
+        icon.className = 'fa fa-check-circle ml-2';
       } else if (type === 'error') {
         notification.classList.add('bg-red-500', 'text-white');
-        notification.innerHTML = '<i class="fa fa-exclamation-circle ml-2"></i>' + message;
+        icon.className = 'fa fa-exclamation-circle ml-2';
       } else {
         notification.classList.add('bg-blue-500', 'text-white');
-        notification.innerHTML = '<i class="fa fa-info-circle ml-2"></i>' + message;
+        icon.className = 'fa fa-info-circle ml-2';
       }
+      notification.append(icon, text);
       
       document.body.appendChild(notification);
       

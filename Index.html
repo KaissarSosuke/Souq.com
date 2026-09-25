@@ -132,7 +132,7 @@
                     <li><a href="Index.html" class="nav-link text-blue-600 active-link" data-page="Index.html">الرئيسية</a></li>
                     <li><a href="Shop.html" class="nav-link text-gray-700 hover:text-blue-600" data-page="Shop.html">تسوق</a></li>
                     <li><a href="AboutUs.html" class="nav-link text-gray-700 hover:text-blue-600" data-page="AboutUs.html">عنا</a></li>
-                    <li><a href="Contact.html" class="nav-link text-gray-700 hover:text-blue-600" data-page="Contact.html">تواصل معنا</a></li>
+                    <li><a href="contact.html" class="nav-link text-gray-700 hover:text-blue-600" data-page="contact.html">تواصل معنا</a></li>
                 </ul>
             </nav>
         </div>
@@ -196,7 +196,7 @@
                 <div class="bg-blue-50 rounded-lg p-6 shadow-sm">
                     <i class="fas fa-phone-alt text-3xl text-blue-600 mb-4"></i>
                     <h3 class="text-xl font-bold mb-2">الهاتف</h3>
-                    <p class="text-gray-600 select-all">218916773527+</p>
+                    <p class="text-gray-600 select-all" dir="ltr">+218916773527</p>
                 </div>
                 <div class="bg-blue-50 rounded-lg p-6 shadow-sm">
                     <i class="fas fa-map-marker-alt text-3xl text-blue-600 mb-4"></i>
@@ -308,7 +308,7 @@
                         <li><a href="Shop.html" class="nav-link text-gray-200 hover:text-white" data-page="Shop.html">المنتجات</a></li>
                         <li><a href="#" class="privacy-link text-gray-200 hover:text-white">سياسة الخصوصية</a></li>
                         <li><a href="#" class="terms-link text-gray-200 hover:text-white">شروط الاستخدام</a></li>
-                        <li><a href="Contact.html" class="nav-link text-gray-200 hover:text-white" data-page="Contact.html">تواصل معنا</a></li>
+                        <li><a href="contact.html" class="nav-link text-gray-200 hover:text-white" data-page="contact.html">تواصل معنا</a></li>
                     </ul>
                 </div>
                 <div>
@@ -316,14 +316,13 @@
                     <div class="flex space-x-4 space-x-reverse mb-4">
                          <a href="https://www.facebook.com/share/1CEyEf8f9P/?mibextid=wwXIfr" target="_blank" class="text-gray-200 hover:text-white text-2xl"><i class="fab fa-facebook"></i></a>
                        
-                        <a href="https://www.instagram.com/souqdotcom0?igsh=MXBucmxjMWptcWxoOA%3D%3D&utm_source=qr
-" target="_blank" class="text-gray-200 hover:text-white text-2xl"><i class="fab fa-instagram"></i></a>
+                        <a href="https://www.instagram.com/souqdotcom0?igsh=MXBucmxjMWptcWxoOA%3D%3D&amp;utm_source=qr" target="_blank" class="text-gray-200 hover:text-white text-2xl"><i class="fab fa-instagram"></i></a>
                        <a href="https://www.tiktok.com/@souqdotcom?_t=ZM-8zQ6bPBXfRG&_r=1" target="_blank" class="text-gray-200 hover:text-white text-2xl"><i class="fab fa-tiktok"></i></a>
                     </div>
                 </div>
             </div>
             <div class="border-t border-blue-400 mt-8 pt-8 text-center text-gray-300">
-                <p>© 2025 سوق.كوم. جميع الحقوق محفوظة.</p>
+                <p>© 2026 سوق.كوم. جميع الحقوق محفوظة.</p>
             </div>
         </div>
     </footer>
@@ -335,99 +334,114 @@
         // جلب المنتجات من قاعدة البيانات
         async function fetchFeaturedProducts() {
             try {
-                const res = await fetch("https://back-end-klkg.onrender.com/api/products?sort=mostsold");
-                products = await res.json();
+                const res = await apiFetch("/api/products?sort=mostsold&limit=20");
+                const body = res.apiBody;
+                products = Array.isArray(body) ? body : (body?.data || []);
                 renderFeaturedProducts();
             } catch (err) {
                 products = [];
-                document.getElementById('featuredProducts').innerHTML = '<div class="text-center text-red-500">تعذر جلب المنتجات.</div>';
+                document.getElementById('featuredProducts').innerHTML = '<div class="text-center text-red-500">تعذر جلب المنتجات. <button onclick="fetchFeaturedProducts()" class="underline text-blue-600">إعادة المحاولة</button></div>';
             }
+        }
+
+        function isNewProduct(product) {
+            const added = typeof product.added === "number" ? product.added : Date.parse(product.added);
+            if (!Number.isFinite(added)) return false;
+            return Date.now() - added <= 1000 * 60 * 60 * 24 * 14;
         }
 
         function renderFeaturedProducts() {
             const grid = document.getElementById('featuredProducts');
-            grid.innerHTML = '';
+            grid.replaceChildren();
             products.slice(0, 4).forEach(product => {
+                const pid = String(product._id || product.id || "");
                 let extraTags = '';
-                if (product.sold > 30) extraTags += `<span class="tag tag-mostsold">الأكثر مبيعاً</span>`;
-                if (Date.now() - product.added <= 1000 * 60 * 60 * 24 * 14) extraTags += `<span class="tag tag-new">جديد</span>`;
-                grid.innerHTML += `
-                    <div class="product-card bg-white rounded-lg shadow-lg overflow-hidden transition duration-300 flex flex-col cursor-pointer border-2 border-blue-50 hover:border-blue-400"
-                        onclick="openProductModal('${product._id}')">
-                        <div class="relative">
-                            <img src="${product.images[0]}" alt="${product.name}" class="w-full h-56 object-cover">
-                            <div class="absolute top-2 left-2 flex flex-col gap-1">${extraTags}</div>
+                if (Number(product.sold) > 30) extraTags += `<span class="tag tag-mostsold">الأكثر مبيعاً</span>`;
+                if (isNewProduct(product)) extraTags += `<span class="tag tag-new">جديد</span>`;
+                const card = document.createElement('div');
+                card.className = "product-card bg-white rounded-lg shadow-lg overflow-hidden transition duration-300 flex flex-col cursor-pointer border-2 border-blue-50 hover:border-blue-400";
+                card.dataset.id = pid;
+                card.innerHTML = `
+                    <div class="relative">
+                        <img src="${safeImageUrl(product.images && product.images[0])}" alt="${escapeHtml(product.name)}" class="w-full h-56 object-cover">
+                        <div class="absolute top-2 left-2 flex flex-col gap-1">${extraTags}</div>
+                    </div>
+                    <div class="p-4 flex-1 flex flex-col">
+                        <h3 class="text-xl font-semibold text-blue-800 mb-2">${escapeHtml(product.name)}</h3>
+                        <div class="mb-2 flex flex-wrap gap-1">
+                            ${Array.isArray(product.tags) ? product.tags.map(tag => `<span class="tag">${escapeHtml(tag)}</span>`).join('') : ''}
                         </div>
-                        <div class="p-4 flex-1 flex flex-col">
-                            <h3 class="text-xl font-semibold text-blue-800 mb-2">${product.name}</h3>
-                            <div class="mb-2 flex flex-wrap gap-1">
-                                ${product.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
-                            </div>
-                            <p class="text-gray-600 mb-4 flex-1">${product.desc}</p>
-                            <div class="flex items-center justify-between">
-                                <span class="text-blue-600 font-bold">${product.price} د.ل</span>
-                                <button class="primary-btn px-4 py-2 rounded-lg add-to-cart-btn" data-id="${product._id}" data-qty="1">أضف للسلة</button>
-                            </div>
+                        <p class="text-gray-600 mb-4 flex-1">${escapeHtml(product.desc)}</p>
+                        <div class="flex items-center justify-between">
+                            <span class="text-blue-600 font-bold">${escapeHtml(String(product.price))} د.ل</span>
+                            <button class="primary-btn px-4 py-2 rounded-lg add-to-cart-btn" data-id="${escapeHtml(pid)}" data-qty="1">أضف للسلة</button>
                         </div>
                     </div>
                 `;
+                card.addEventListener('click', () => openProductModal(pid));
+                grid.appendChild(card);
             });
-            document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
+            grid.querySelectorAll('.add-to-cart-btn').forEach(btn => {
                 btn.onclick = function(e) {
                     e.stopPropagation();
-                    addToCart(btn.getAttribute('data-id'), parseInt(btn.getAttribute('data-qty'), 10));
+                    const id = btn.getAttribute('data-id');
+                    const qty = Number(btn.getAttribute('data-qty')) || 1;
+                    addToCart(id, qty);
                 };
             });
         }
 
         function openProductModal(productId) {
             modalProductId = productId;
-            const product = products.find(p => p._id === productId);
+            const product = products.find(p => String(p._id || p.id) === String(productId));
             if (!product) return;
+            const pid = escapeHtml(String(product._id || product.id || ""));
             let thumbs = '';
-            product.images.forEach((img, idx) => {
-                thumbs += `<img src="${img}" class="w-16 h-16 object-cover rounded product-img-thumb ${idx === 0 ? 'selected' : ''}" onclick="changeProductImg(${idx})">`;
+            (Array.isArray(product.images) ? product.images : []).forEach((img, idx) => {
+                thumbs += `<img src="${safeImageUrl(img)}" class="w-16 h-16 object-cover rounded product-img-thumb ${idx === 0 ? 'selected' : ''}" data-idx="${idx}" alt="">`;
             });
-            const stars = Array.from({length: 5}, (_,i) => `<i class="fa${i < Math.round(product.rating) ? 's' : 'r'} fa-star text-yellow-400"></i>`).join('');
-            const tags = product.tags.map(tag => `<span class="tag">${tag}</span>`).join('');
+            const stars = Array.from({length: 5}, (_,i) => `<i class="fa${i < Math.round(Number(product.rating) || 0) ? 's' : 'r'} fa-star text-yellow-400"></i>`).join('');
+            const tags = Array.isArray(product.tags) ? product.tags.map(tag => `<span class="tag">${escapeHtml(tag)}</span>`).join('') : '';
             let extraTags = '';
-            if (product.sold > 30) extraTags += `<span class="tag tag-mostsold">الأكثر مبيعاً</span>`;
-            if (product.added > Date.now() - 1000 * 60 * 60 * 24 * 14) extraTags += `<span class="tag tag-new">جديد</span>`;
+            if (Number(product.sold) > 30) extraTags += `<span class="tag tag-mostsold">الأكثر مبيعاً</span>`;
+            if (isNewProduct(product)) extraTags += `<span class="tag tag-new">جديد</span>`;
             document.getElementById('productDetails').innerHTML = `
                 <div class="flex flex-col md:flex-row gap-8">
                     <div class="flex flex-col items-center gap-4 flex-shrink-0">
-                        <img id="mainProdImg" src="${product.images[0]}" class="w-64 h-64 object-cover rounded-lg border">
+                        <img id="mainProdImg" src="${safeImageUrl(product.images && product.images[0])}" alt="${escapeHtml(product.name)}" class="w-64 h-64 object-cover rounded-lg border">
                         <div class="flex gap-2 mt-2">${thumbs}</div>
                     </div>
                     <div class="flex-1 flex flex-col">
-                        <h3 class="text-2xl font-bold text-blue-800 mb-2">${product.name}</h3>
+                        <h3 class="text-2xl font-bold text-blue-800 mb-2">${escapeHtml(product.name)}</h3>
                         <div class="mb-2 flex flex-wrap gap-1">${tags}${extraTags}</div>
-                        <p class="text-gray-700 mb-2">${product.desc}</p>
+                        <p class="text-gray-700 mb-2">${escapeHtml(product.desc)}</p>
                         <div class="flex items-center gap-2 mb-1">
                             ${stars}
-                            <span class="text-sm text-gray-600 ml-2">(${product.rating} | ${product.reviews} تقييم)</span>
+                            <span class="text-sm text-gray-600 ml-2">(${escapeHtml(String(product.rating))} | ${escapeHtml(String(product.reviews))} تقييم)</span>
                         </div>
                         <div class="mb-2 text-gray-600 text-sm">
-                            <span>عدد القطع المتبقية: <span class="font-bold text-blue-700">${product.stock}</span></span>
+                            <span>عدد القطع المتبقية: <span class="font-bold text-blue-700">${escapeHtml(String(product.stock))}</span></span>
                         </div>
-                        <div class="mb-3 text-2xl font-bold text-blue-700">${product.price} د.ل</div>
+                        <div class="mb-3 text-2xl font-bold text-blue-700">${escapeHtml(String(product.price))} د.ل</div>
                         <div class="flex items-center gap-2 mb-2">
                             <label for="prodQty" class="text-gray-700">الكمية:</label>
-                            <input id="prodQty" type="number" min="1" max="${product.stock}" value="1" class="w-16 border text-center rounded py-1 px-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <input id="prodQty" type="number" min="1" max="${escapeHtml(String(product.stock))}" value="1" class="w-16 border text-center rounded py-1 px-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
-                        <button onclick="addToCartAndClose('${product._id}', document.getElementById('prodQty').value)" class="primary-btn w-full py-3 rounded-lg font-medium text-lg">أضف للسلة</button>
+                        <button id="modalAddBtn" class="primary-btn w-full py-3 rounded-lg font-medium text-lg">أضف للسلة</button>
                     </div>
                 </div>
             `;
-            document.querySelectorAll('.product-img-thumb').forEach((thumb, idx) => {
+            document.getElementById('modalAddBtn').onclick = () => addToCartAndClose(pid, document.getElementById('prodQty').value);
+            document.querySelectorAll('.product-img-thumb').forEach((thumb) => {
+                const idx = Number(thumb.getAttribute('data-idx')) || 0;
                 thumb.onclick = function() { changeProductImg(idx); }
             });
             document.getElementById('productModal').classList.remove('hidden');
         }
         function changeProductImg(idx) {
-            const product = products.find(p => p._id === modalProductId);
-            if (!product) return;
-            document.getElementById('mainProdImg').src = product.images[idx];
+            const product = products.find(p => String(p._id || p.id) === String(modalProductId));
+            if (!product || !product.images || !product.images[idx]) return;
+            document.getElementById('mainProdImg').src = safeImageUrl(product.images[idx]);
             document.querySelectorAll('.product-img-thumb').forEach((thumb, i) => {
                 thumb.classList.toggle('selected', i === idx);
             });
@@ -437,10 +451,12 @@
             modalProductId = null;
         }
         function addToCartAndClose(productId, qty=1) {
-            qty = parseInt(qty, 10);
-            const product = products.find(p => p._id === productId);
+            qty = Math.max(1, Number(qty) || 1);
+            const product = products.find(p => String(p._id || p.id) === String(productId));
             if (!product) return;
-            if (qty > product.stock) {
+            const inCart = Array.isArray(window.userCart) ? window.userCart.find(i => String(i.productId) === String(product._id || product.id)) : null;
+            const totalWanted = qty + (inCart ? (Number(inCart.qty) || 0) : 0);
+            if (totalWanted > Number(product.stock)) {
                 alert("الكمية المطلوبة أكثر من المتوفر في المخزون!");
                 return;
             }
@@ -471,7 +487,7 @@
         // فتح مودال الحساب
         document.getElementById('userIcon').addEventListener('click', function(e) {
             e.preventDefault();
-            openModal();
+            if (typeof openLoginModal === "function") openLoginModal();
         });
 
         // ارسال الرسالة للباك اند
@@ -484,25 +500,17 @@
             const successMsg = document.getElementById('successMsg');
 
             try {
-                const res = await fetch("https://back-end-klkg.onrender.com/api/contact", {
+                const res = await apiFetch("/api/contact", {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ name, email, message })
                 });
-
-                const data = await res.json();
-                if (res.ok) {
-                    successMsg.textContent = data.message || "تم إرسال رسالتك بنجاح!";
-                    successMsg.classList.remove("hidden", "text-red-600");
-                    successMsg.classList.add("text-green-600");
-                    document.getElementById('contactForm').reset();
-                } else {
-                    successMsg.textContent = data.message || "تعذر إرسال الرسالة.";
-                    successMsg.classList.remove("hidden", "text-green-600");
-                    successMsg.classList.add("text-red-600");
-                }
+                const data = res.apiBody || {};
+                successMsg.textContent = data.message || "تم إرسال رسالتك بنجاح!";
+                successMsg.classList.remove("hidden", "text-red-600");
+                successMsg.classList.add("text-green-600");
+                document.getElementById('contactForm').reset();
             } catch (err) {
-                successMsg.textContent = "خطأ في الاتصال بالخادم.";
+                successMsg.textContent = apiErrorMessage(err, "تعذر إرسال الرسالة.");
                 successMsg.classList.remove("hidden", "text-green-600");
                 successMsg.classList.add("text-red-600");
             }

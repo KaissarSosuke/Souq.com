@@ -247,7 +247,7 @@
                         <li><a href="Shop.html" class="nav-link text-gray-200 hover:text-white" data-page="Shop.html">المنتجات</a></li>
                         <li><a href="#" class="privacy-link text-gray-200 hover:text-white">سياسة الخصوصية</a></li>
                         <li><a href="#" class="terms-link text-gray-200 hover:text-white">شروط الاستخدام</a></li>
-                        <li><a href="Contact.html" class="nav-link text-gray-200 hover:text-white" data-page="Contact.html">تواصل معنا</a></li>
+                        <li><a href="contact.html" class="nav-link text-gray-200 hover:text-white" data-page="contact.html">تواصل معنا</a></li>
                     </ul>
                 </div>
                 <div>
@@ -255,15 +255,14 @@
                     <div class="flex space-x-4 space-x-reverse mb-4">
                        <a href="https://www.facebook.com/share/1CEyEf8f9P/?mibextid=wwXIfr" target="_blank" class="text-gray-200 hover:text-white text-2xl"><i class="fab fa-facebook"></i></a>
                        
-                        <a href="https://www.instagram.com/souqdotcom0?igsh=MXBucmxjMWptcWxoOA%3D%3D&utm_source=qr
-" target="_blank" class="text-gray-200 hover:text-white text-2xl"><i class="fab fa-instagram"></i></a>
+                        <a href="https://www.instagram.com/souqdotcom0?igsh=MXBucmxjMWptcWxoOA%3D%3D&amp;utm_source=qr" target="_blank" class="text-gray-200 hover:text-white text-2xl"><i class="fab fa-instagram"></i></a>
                        <a href="https://www.tiktok.com/@souqdotcom?_t=ZM-8zQ6bPBXfRG&_r=1" target="_blank" class="text-gray-200 hover:text-white text-2xl"><i class="fab fa-tiktok"></i></a>
                     </div>
                     
                 </div>
             </div>
             <div class="border-t border-blue-400 mt-8 pt-8 text-center text-gray-300">
-                <p>© 2025 سوق.كوم. جميع الحقوق محفوظة.</p>
+                <p>© 2026 سوق.كوم. جميع الحقوق محفوظة.</p>
             </div>
         </div>
     </footer>
@@ -327,7 +326,7 @@
         let currentEmail = "";
 
         // إرسال البيانات للباك اند (طلب إنشاء وإرسال الكود)
-        document.getElementById('signUpForm').addEventListener('submit', function(e) {
+        document.getElementById('signUpForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             if (!validateForm()) return;
 
@@ -342,31 +341,22 @@
             document.getElementById('formSuccess').classList.add('hidden');
             document.getElementById('signUpBtn').disabled = true;
 
-            fetch('https://back-end-klkg.onrender.com/api/signup/send-code', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(data)
-            })
-            .then(async res => {
-                const result = await res.json();
-                if (res.ok) {
-                    pendingSignUpData = data;
-                    currentEmail = data.email;
-                    document.getElementById('formSuccess').classList.remove('hidden');
-                    setTimeout(() => {
-                        openCodeModal();
-                    }, 900);
-                } else {
-                    document.getElementById('formError').textContent = result.message || "حدث خطأ أثناء إرسال الكود";
-                    document.getElementById('formError').classList.remove('hidden');
-                    document.getElementById('signUpBtn').disabled = false;
-                }
-            })
-            .catch(() => {
-                document.getElementById('formError').textContent = "تعذر الاتصال بالخادم. حاول لاحقاً";
+            try {
+                const res = await apiFetch('/api/signup/send-code', {
+                    method: 'POST',
+                    body: JSON.stringify(data)
+                });
+                pendingSignUpData = data;
+                currentEmail = data.email;
+                document.getElementById('formSuccess').classList.remove('hidden');
+                setTimeout(() => {
+                    openCodeModal();
+                }, 900);
+            } catch (err) {
+                document.getElementById('formError').textContent = apiErrorMessage(err, "حدث خطأ أثناء إرسال الكود");
                 document.getElementById('formError').classList.remove('hidden');
                 document.getElementById('signUpBtn').disabled = false;
-            });
+            }
         });
 
         // فتح مودال الكود
@@ -381,7 +371,7 @@
         }
 
         // تحقق كود التحقق
-        document.getElementById('verifyCodeForm').addEventListener('submit', function(e) {
+        document.getElementById('verifyCodeForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const code = document.getElementById('inputVerCode').value.trim();
             if (!code.match(/^[0-9]{6}$/)) {
@@ -392,56 +382,42 @@
             document.getElementById('codeSuccess').classList.add('hidden');
 
             // إرسال الكود للباك اند للتحقق وإنشاء الحساب
-            fetch('https://back-end-klkg.onrender.com/api/signup/verify-code', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
-                    ...pendingSignUpData,
-                    code: code
-                })
-            })
-            .then(async res => {
-                const result = await res.json();
-                if (res.ok) {
-                    document.getElementById('codeSuccess').textContent = result.message || "تم تفعيل حسابك بنجاح!";
-                    document.getElementById('codeSuccess').classList.remove('hidden');
-                    setTimeout(() => {
-                        window.location.href = "Index.html";
-                    }, 2200);
-                } else {
-                    document.getElementById('codeErr').textContent = result.message || "كود غير صحيح أو منتهي";
-                }
-            })
-            .catch(() => {
-                document.getElementById('codeErr').textContent = "تعذر الاتصال بالخادم";
-            });
+            try {
+                const res = await apiFetch('/api/signup/verify-code', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        email: currentEmail,
+                        code: code
+                    })
+                });
+                const result = res.apiBody || {};
+                document.getElementById('codeSuccess').textContent = result.message || "تم تفعيل حسابك بنجاح!";
+                document.getElementById('codeSuccess').classList.remove('hidden');
+                setTimeout(() => {
+                    window.location.href = "Index.html";
+                }, 2200);
+            } catch (err) {
+                document.getElementById('codeErr').textContent = apiErrorMessage(err, "كود غير صحيح أو منتهي");
+            }
         });
 
         // زر إعادة إرسال الكود
-        document.getElementById('resendBtn').onclick = function() {
+        document.getElementById('resendBtn').onclick = async function() {
             if (!pendingSignUpData || !currentEmail) return;
             document.getElementById('resendBtn').disabled = true;
-            fetch('https://back-end-klkg.onrender.com/api/signup/send-code', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(pendingSignUpData)
-            })
-            .then(async res => {
-                const result = await res.json();
-                if (res.ok) {
-                    document.getElementById('codeErr').textContent = "تم إرسال الكود مرة أخرى لبريدك.";
-                } else {
-                    document.getElementById('codeErr').textContent = result.message || "تعذر إرسال الكود.";
-                }
-            })
-            .catch(() => {
-                document.getElementById('codeErr').textContent = "تعذر الاتصال بالخادم";
-            })
-            .finally(() => {
+            try {
+                await apiFetch('/api/signup/send-code', {
+                    method: 'POST',
+                    body: JSON.stringify(pendingSignUpData)
+                });
+                document.getElementById('codeErr').textContent = "تم إرسال الكود مرة أخرى لبريدك.";
+            } catch (err) {
+                document.getElementById('codeErr').textContent = apiErrorMessage(err, "تعذر إرسال الكود.");
+            } finally {
                 setTimeout(() => {
                     document.getElementById('resendBtn').disabled = false;
                 }, 3000);
-            });
+            }
         }
 
          // سياسة الخصوصية وشروط الاستخدام
