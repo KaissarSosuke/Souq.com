@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>سوق.كوم — شنط وإكسسوارات أصلية</title>
+  <meta name="description" content="سوق.كوم — متجر ليبي للشنط والإكسسوارات والساعات الأصلية مع توصيل سريع لجميع المدن.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="سوق.كوم — شنط وإكسسوارات أصلية">
+  <meta property="og:description" content="اكتشف أحدث تشكيلة الشنط والإكسسوارات الأصلية مع توصيل سريع في ليبيا.">
+  <meta property="og:image" content="assets/og-cover.svg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="سوق.كوم">
+  <meta name="twitter:description" content="شنط وإكسسوارات أصلية — توصيل لكل ليبيا.">
+  <meta name="twitter:image" content="assets/og-cover.svg">
+  <meta name="theme-color" content="#2563eb">
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;700;800&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { theme: { extend: { fontFamily: { head: ['Cairo','Tajawal','sans-serif'], body: ['Tajawal','Cairo','sans-serif'] }, colors: { brand: '#2563eb', accent: '#7c3aed', sand: '#fbeed3' } } } };
+  </script>
+  <link rel="stylesheet" href="site.css">
+  <script src="common.js"></script>
+  <script src="account.js"></script>
+  <script src="cart.js"></script>
+</head>
+<body class="rtl-support font-body">
+<div id="site-header"></div>
+
+<main id="main">
+  <!-- Hero -->
+  <section class="container px-4 mt-6" data-aos="fade-up">
+    <div class="hero-shell shadow-2xl min-h-[380px] md:min-h-[440px] flex items-center">
+      <img class="hero-bg" src="assets/hero.svg" alt="" aria-hidden="true" onerror="this.style.display='none'">
+      <div class="relative z-10 w-full px-6 py-14 md:py-16 text-center text-white">
+        <p class="inline-flex items-center gap-2 bg-white/15 backdrop-blur px-4 py-1.5 rounded-full text-sm mb-4 border border-white/20"><i class="fas fa-bolt"></i> توصيل سريع لكل المدن الليبية</p>
+        <h1 class="font-head text-3xl sm:text-4xl md:text-6xl font-extrabold leading-tight drop-shadow-xl">أحدث تشكيلة شنط<br class="sm:hidden"> وإكسسوارات أصلية</h1>
+        <p class="mt-4 text-base md:text-2xl text-white/90">جودة مضمونة · أسعار منافسة · دفع عند الاستلام</p>
+        <div class="mt-7 flex flex-col sm:flex-row gap-3 justify-center">
+          <a href="shop.html" data-page="shop.html" class="primary-btn !bg-white !text-blue-800 px-8 py-3.5 rounded-xl text-lg">تسوق الآن <i class="fas fa-arrow-left"></i></a>
+          <a href="about.html" data-page="about.html" class="px-8 py-3.5 rounded-xl text-lg border-2 border-white/60 text-white hover:bg-white/10 transition font-bold">تعرف علينا</a>
+        </div>
+        <div class="mt-8 flex flex-wrap justify-center gap-2 text-sm">
+          <span class="bg-white/15 border border-white/20 rounded-full px-4 py-1.5"><i class="fas fa-shield-halved ml-1"></i> منتجات أصلية</span>
+          <span class="bg-white/15 border border-white/20 rounded-full px-4 py-1.5"><i class="fas fa-truck-fast ml-1"></i> شحن سريع</span>
+          <span class="bg-white/15 border border-white/20 rounded-full px-4 py-1.5"><i class="fas fa-rotate-left ml-1"></i> إرجاع سهل</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Featured -->
+  <section class="container px-4 mt-8" data-aos="fade-up">
+    <div class="bg-white/80 backdrop-blur rounded-3xl shadow-xl p-6 md:p-10">
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-3 mb-8">
+        <div>
+          <p class="text-blue-600 font-bold text-sm mb-1">مختارات لك</p>
+          <h2 class="font-head text-2xl md:text-4xl font-extrabold text-slate-900">منتجاتنا المميزة</h2>
+        </div>
+        <a href="shop.html" data-page="shop.html" class="primary-btn px-6 py-2.5 rounded-xl">عرض الكل <i class="fas fa-arrow-left text-sm"></i></a>
+      </div>
+      <div id="featuredProducts" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 md:gap-6" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <!-- Value props -->
+  <section class="container px-4 mt-8 grid grid-cols-1 md:grid-cols-3 gap-5" data-aos="fade-up">
+    <div class="bg-white rounded-2xl p-6 shadow text-center"><i class="fas fa-gem text-3xl text-blue-600 mb-3"></i><h3 class="font-head font-bold text-lg mb-1">أصالة مضمونة</h3><p class="text-slate-500">كل قطعة مختارة بعناية وجودة موثوقة.</p></div>
+    <div class="bg-white rounded-2xl p-6 shadow text-center"><i class="fas fa-truck-fast text-3xl text-blue-600 mb-3"></i><h3 class="font-head font-bold text-lg mb-1">توصيل لكل ليبيا</h3><p class="text-slate-500">تغليف آمن وشحن سريع حتى باب البيت.</p></div>
+    <div class="bg-white rounded-2xl p-6 shadow text-center"><i class="fas fa-headset text-3xl text-blue-600 mb-3"></i><h3 class="font-head font-bold text-lg mb-1">دعم متواصل</h3><p class="text-slate-500">نرد على استفساراتك بسرعة عبر الموقع.</p></div>
+  </section>
+
+  <!-- Contact -->
+  <section class="container px-4 mt-8" data-aos="fade-up">
+    <div class="bg-gradient-to-br from-blue-50 via-white to-indigo-50 rounded-3xl shadow-xl p-6 md:p-10">
+      <h2 class="font-head text-2xl md:text-3xl font-extrabold text-center text-blue-900 mb-8">تواصل معنا</h2>
+      <div class="max-w-2xl mx-auto">
+        <form class="space-y-4" id="contactForm">
+          <div><label class="block mb-1.5 font-bold text-slate-700" for="name">الاسم الكامل</label><input type="text" id="name" name="name" class="input-style" placeholder="اكتب اسمك هنا" required autocomplete="name"></div>
+          <div><label class="block mb-1.5 font-bold text-slate-700" for="email">البريد الإلكتروني</label><input type="email" id="email" name="email" class="input-style" placeholder="example@email.com" required autocomplete="email" dir="ltr" class="text-left"></div>
+          <div><label class="block mb-1.5 font-bold text-slate-700" for="message">رسالتك</label><textarea id="message" name="message" rows="5" class="input-style" placeholder="اكتب رسالتك هنا" required></textarea></div>
+          <button type="submit" class="primary-btn px-8 py-3 rounded-xl text-lg w-full sm:w-auto mx-auto"><i class="fas fa-paper-plane"></i> إرسال الرسالة</button>
+        </form>
+        <div id="successMsg" class="hidden text-center mt-5 font-bold" role="status"></div>
+      </div>
+      <div class="mt-10 grid grid-cols-1 md:grid-cols-3 gap-5 text-center">
+        <div class="bg-white rounded-2xl p-6 shadow-sm"><i class="fas fa-envelope text-2xl text-blue-600 mb-2"></i><h3 class="font-bold mb-1">البريد</h3><p class="text-slate-500 select-all" dir="ltr">souqdotcom0@gmail.com</p></div>
+        <div class="bg-white rounded-2xl p-6 shadow-sm"><i class="fas fa-phone text-2xl text-blue-600 mb-2"></i><h3 class="font-bold mb-1">الهاتف</h3><p class="text-slate-500 select-all" dir="ltr">+218916773527</p></div>
+        <div class="bg-white rounded-2xl p-6 shadow-sm"><i class="fas fa-location-dot text-2xl text-blue-600 mb-2"></i><h3 class="font-bold mb-1">العنوان</h3><p class="text-slate-500">طرابلس، ليبيا</p></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- Product modal -->
+<div id="productModal" class="fixed inset-0 modal-overlay hidden items-center justify-center z-[80] p-4" role="dialog" aria-modal="true" aria-labelledby="pmTitle">
+  <div class="bg-white rounded-2xl w-full max-w-3xl relative max-h-[90vh] overflow-y-auto shadow-2xl">
+    <button onclick="closeProductModal()" class="icon-btn absolute left-4 top-4" aria-label="إغلاق"><i class="fas fa-times"></i></button>
+    <div id="productDetails" class="p-6 md:p-8"></div>
+  </div>
+</div>
+
+<div id="site-footer"></div>
+
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>
+let products = [];
+let modalProductId = null;
+renderSharedShell("index", {});
+initAOS();
+
+async function fetchFeaturedProducts() {
+  const grid = document.getElementById('featuredProducts');
+  grid.innerHTML = '<div class="col-span-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">' + Array.from({length:4}).map(()=>'<div class="animate-pulse bg-slate-100 rounded-2xl h-80"></div>').join('') + '</div>';
+  try {
+    const res = await apiFetch("/api/products?sort=mostsold&limit=20");
+    const body = res.apiBody;
+    products = Array.isArray(body) ? body : (body?.data || []);
+    renderFeaturedProducts();
+  } catch (err) {
+    grid.innerHTML = '<div class="col-span-full text-center text-red-500 py-8">تعذر جلب المنتجات. <button onclick="fetchFeaturedProducts()" class="underline text-blue-600 font-bold">إعادة المحاولة</button></div>';
+  }
+}
+function isNewProduct(p) {
+  const added = typeof p.added === "number" ? p.added : Date.parse(p.added);
+  return Number.isFinite(added) && Date.now() - added <= 864e5 * 14;
+}
+function cardHTML(product) {
+  const pid = String(product._id || product.id || "");
+  const wished = isWished(pid);
+  let extra = '';
+  if (Number(product.sold) > 30) extra += '<span class="tag tag-mostsold">الأكثر مبيعاً</span>';
+  if (isNewProduct(product)) extra += '<span class="tag tag-new">جديد</span>';
+  const tags = Array.isArray(product.tags) ? product.tags.slice(0,3).map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('') : '';
+  return `
+    <div class="relative">
+      <img src="${safeImageUrl(product.images && product.images[0], 'assets/hero.svg')}" onerror="this.onerror=null;this.src='assets/hero.svg'" alt="${escapeHtml(product.name)}" loading="lazy" decoding="async" class="w-full h-56 object-cover">
+      <div class="absolute top-2 right-2 flex flex-col gap-1 items-end">${extra}</div>
+      <div class="card-actions">
+        <button class="card-icon-btn ${wished ? "wished" : ""}" data-wish="${escapeHtml(pid)}" aria-pressed="${wished}" aria-label="${wished ? "إزالة من المفضلة" : "إضافة للمفضلة"}"><i class="fas fa-heart text-sm"></i></button>
+        <button class="card-icon-btn" data-view="${escapeHtml(pid)}" aria-label="عرض سريع"><i class="fas fa-eye text-sm"></i></button>
+      </div>
+    </div>
+    <div class="p-4 flex-1 flex flex-col">
+      <h3 class="font-head text-lg font-bold text-slate-900 mb-1.5 clamp-2">${escapeHtml(product.name)}</h3>
+      <div class="mb-2 flex flex-wrap gap-1">${tags}</div>
+      <p class="text-slate-500 text-sm mb-3 flex-1 clamp-2">${escapeHtml(product.desc || '')}</p>
+      <div class="flex items-center justify-between gap-2">
+        <span class="text-blue-700 font-extrabold text-lg">${escapeHtml(String(product.price))} د.ل</span>
+        <button class="primary-btn px-4 py-2 rounded-xl text-sm add-to-cart-btn" data-id="${escapeHtml(pid)}" data-qty="1"><i class="fas fa-cart-plus"></i> أضف</button>
+      </div>
+    </div>`;
+}
+function renderFeaturedProducts() {
+  const grid = document.getElementById('featuredProducts');
+  grid.replaceChildren();
+  if (!products.length) { grid.innerHTML = '<div class="col-span-full text-center text-slate-400 py-8">لا توجد منتجات حالياً.</div>'; return; }
+  products.slice(0, 8).forEach(product => {
+    const pid = String(product._id || product.id || "");
+    const card = document.createElement('article');
+    card.className = "product-card"; card.tabIndex = 0;
+    card.setAttribute("aria-label", product.name || "منتج");
+    card.innerHTML = cardHTML(product);
+    card.addEventListener('click', e => { if (e.target.closest('[data-wish],[data-view],.add-to-cart-btn]')) return; openProductModal(pid); });
+    card.addEventListener('keydown', e => { if (e.key === "Enter") openProductModal(pid); });
+    grid.appendChild(card);
+  });
+  grid.querySelectorAll('[data-wish]').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); toggleWish(b.getAttribute('data-wish')); }));
+  grid.querySelectorAll('[data-view]').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); openProductModal(b.getAttribute('data-view')); }));
+  grid.querySelectorAll('.add-to-cart-btn').forEach(btn => btn.addEventListener('click', e => {
+    e.stopPropagation();
+    addToCart(btn.getAttribute('data-id'), Number(btn.getAttribute('data-qty')) || 1);
+  }));
+}
+function openProductModal(productId) {
+  modalProductId = String(productId);
+  const product = products.find(p => String(p._id || p.id) === modalProductId);
+  if (!product) return;
+  const pid = String(product._id || product.id || "");
+  const thumbs = (Array.isArray(product.images) ? product.images : []).map((img, idx) =>
+    `<img src="${safeImageUrl(img, 'assets/hero.svg')}" onerror="this.onerror=null;this.src='assets/hero.svg'" loading="lazy" class="w-16 h-16 object-cover rounded-xl product-img-thumb ${idx === 0 ? 'selected' : ''}" data-idx="${idx}" alt="${escapeHtml(product.name)} — صورة ${idx+1}" tabindex="0">`).join('');
+  const stars = Array.from({length:5}, (_,i) => `<i class="fa${i < Math.round(Number(product.rating)||0) ? 's' : 'r'} fa-star text-yellow-400" aria-hidden="true"></i>`).join('');
+  document.getElementById('productDetails').innerHTML = `
+    <div class="flex flex-col md:flex-row gap-6">
+      <div class="flex flex-col items-center gap-3 md:w-72 shrink-0">
+        <img id="mainProdImg" src="${safeImageUrl(product.images && product.images[0], 'assets/hero.svg')}" onerror="this.onerror=null;this.src='assets/hero.svg'" alt="${escapeHtml(product.name)}" class="w-full h-72 object-cover rounded-2xl border">
+        <div class="flex gap-2 flex-wrap justify-center">${thumbs}</div>
+      </div>
+      <div class="flex-1 min-w-0">
+        <h3 id="pmTitle" class="font-head text-2xl font-extrabold text-slate-900 mb-2">${escapeHtml(product.name)}</h3>
+        <div class="mb-2 flex flex-wrap gap-1">${Array.isArray(product.tags) ? product.tags.map(t=>`<span class="tag">${escapeHtml(t)}</span>`).join('') : ''}</div>
+        <p class="text-slate-600 mb-3 leading-8">${escapeHtml(product.desc || '')}</p>
+        <div class="flex items-center gap-2 mb-2" aria-label="التقييم ${product.rating || 0} من 5">${stars}<span class="text-sm text-slate-500">(${escapeHtml(String(product.rating ?? 0))} · ${escapeHtml(String(product.reviews ?? 0))} تقييم)</span></div>
+        <p class="text-sm text-slate-500 mb-1">المتبقي: <strong class="text-blue-700">${escapeHtml(String(product.stock ?? 0))}</strong></p>
+        <p class="text-2xl font-extrabold text-blue-700 mb-3">${escapeHtml(String(product.price))} د.ل</p>
+        <div class="flex items-center gap-3 mb-3">
+          <label for="prodQty" class="font-bold text-slate-700">الكمية:</label>
+          <input id="prodQty" type="number" min="1" max="${escapeHtml(String(product.stock ?? 99))}" value="1" inputmode="numeric" class="input-style !w-24 text-center">
+          <button id="wishModalBtn" class="card-icon-btn !w-11 !h-11 ${isWished(pid)?"wished":""}" aria-label="مفضلة"><i class="fas fa-heart"></i></button>
+        </div>
+        <button id="modalAddBtn" class="primary-btn w-full py-3 rounded-xl text-lg"><i class="fas fa-cart-plus"></i> أضف للسلة</button>
+      </div>
+    </div>`;
+  document.getElementById('wishModalBtn').onclick = () => toggleWish(pid);
+  document.getElementById('modalAddBtn').onclick = () => addToCartAndClose(pid, document.getElementById('prodQty').value);
+  document.querySelectorAll('.product-img-thumb').forEach(th => {
+    const go = () => changeProductImg(Number(th.getAttribute('data-idx')) || 0);
+    th.onclick = go; th.onkeydown = e => { if (e.key === "Enter") go(); };
+  });
+  const m = document.getElementById('productModal');
+  m.classList.remove('hidden'); m.classList.add('flex'); document.documentElement.style.overflow = "hidden";
+}
+function changeProductImg(idx) {
+  const product = products.find(p => String(p._id || p.id) === modalProductId);
+  if (!product?.images?.[idx]) return;
+  document.getElementById('mainProdImg').src = safeImageUrl(product.images[idx], 'assets/hero.svg');
+  document.querySelectorAll('.product-img-thumb').forEach((t,i) => t.classList.toggle('selected', i === idx));
+}
+function closeProductModal() {
+  const m = document.getElementById('productModal');
+  m.classList.add('hidden'); m.classList.remove('flex');
+  document.documentElement.style.overflow = ""; modalProductId = null;
+}
+window.closeProductModal = closeProductModal;
+document.getElementById('productModal').addEventListener('click', e => { if (e.target.id === "productModal") closeProductModal(); });
+function addToCartAndClose(productId, qty=1) {
+  qty = Math.max(1, Number(qty) || 1);
+  const product = products.find(p => String(p._id || p.id) === String(productId));
+  if (!product) return;
+  const stock = Number(product.stock ?? 9999);
+  if (qty > stock) { siteToast(`المتوفر فقط ${stock} قطعة`); return; }
+  addToCart(productId, qty); closeProductModal();
+}
+document.getElementById('contactForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const successMsg = document.getElementById('successMsg');
+  try {
+    const res = await apiFetch("/api/contact", { method: "POST", body: JSON.stringify({ name: document.getElementById('name').value.trim(), email: document.getElementById('email').value.trim(), message: document.getElementById('message').value.trim() }) });
+    successMsg.textContent = (res.apiBody || {}).message || "تم إرسال رسالتك بنجاح!";
+    successMsg.className = "text-center mt-5 font-bold text-green-600";
+    document.getElementById('contactForm').reset();
+  } catch (err) {
+    successMsg.textContent = apiErrorMessage(err, "تعذر إرسال الرسالة.");
+    successMsg.className = "text-center mt-5 font-bold text-red-600";
+  }
+  successMsg.classList.remove("hidden");
+  setTimeout(() => successMsg.classList.add("hidden"), 6000);
+});
+document.addEventListener('keydown', e => { if (e.key === "Escape") closeProductModal(); });
+document.addEventListener('DOMContentLoaded', () => { fetchFeaturedProducts(); });
+</script>
+</body>
+</html>

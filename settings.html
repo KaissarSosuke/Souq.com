@@ -6,9 +6,9 @@
     <title>إعدادات الحساب | سوق.كوم</title>
     <script src="common.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={theme:{extend:{fontFamily:{head:['Cairo','Tajawal','sans-serif'],body:['Tajawal','Cairo','sans-serif']}}}};</script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
         body { font-family: 'Tajawal', sans-serif; background: linear-gradient(135deg, #e0e7ff 0%, #f1f5f9 100%);}
         .input-style {
             border-radius: 8px;
@@ -104,11 +104,27 @@
             .home-btn { right: 12px; top: 14px; font-size: 1.2rem; padding: 0.5rem 0.7rem;}
         }
     </style>
-</head>
-<body>
-    <a href="Index.html" class="home-btn" title="الصفحة الرئيسية"><i class="fas fa-home"></i></a>
 
-    <main class="container mx-auto px-4 py-8 max-w-xl">
+  <meta name="description" content="سوق.كوم — متجر ليبي للشنط والإكسسوارات الأصلية.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="سوق.كوم">
+  <meta property="og:description" content="شنط وإكسسوارات أصلية — توصيل لكل ليبيا.">
+  <meta property="og:image" content="assets/og-cover.svg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="theme-color" content="#2563eb">
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;700;800&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css">
+  <link rel="stylesheet" href="site.css">
+
+</head>
+<body class="rtl-support font-body">
+<div id="site-header"></div>
+    
+
+    <main id="main" class="container mx-auto px-4 py-8 max-w-xl">
         <div class="bg-white rounded-2xl shadow-xl p-8 pt-4 relative">
             <div class="flex flex-col items-center mb-8">
                 <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Default_pfp.svg/2048px-Default_pfp.svg.png" alt="صورة المستخدم" class="w-24 h-24 rounded-full border-4 border-blue-200 shadow mb-1">
@@ -186,7 +202,7 @@ async function fetchProfile() {
         document.getElementById('userEmail').textContent = userProfile.email || "";
     } catch (err) {
         if (err && err.status === 401) {
-            window.location.href = "signUp.html";
+            window.location.href = "signup.html";
             return;
         }
         document.getElementById('settingsContent').innerHTML =
@@ -294,5 +310,8 @@ function closePassView() {
 }
 
 </script>
+<div id="site-footer"></div>
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>renderSharedShell("", {"search": false}); initAOS();</script>
 </body>
 </html>

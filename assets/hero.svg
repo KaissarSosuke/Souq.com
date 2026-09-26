@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 600" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1e3a8a"/>
+      <stop offset=".5" stop-color="#2563eb"/>
+      <stop offset="1" stop-color="#7c3aed"/>
+    </linearGradient>
+    <linearGradient id="soft" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity=".18"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="1440" height="600" fill="url(#bg)"/>
+  <g fill="#ffffff" opacity=".08">
+    <circle cx="200" cy="120" r="90"/>
+    <circle cx="1240" cy="460" r="130"/>
+    <circle cx="1150" cy="120" r="50"/>
+    <circle cx="320" cy="480" r="60"/>
+    <rect x="600" y="80" width="220" height="220" rx="40" transform="rotate(12 710 190)"/>
+  </g>
+  <rect width="1440" height="600" fill="url(#soft)"/>
+  <g font-family="Cairo, Tajawal, sans-serif" fill="#ffffff" text-anchor="middle">
+    <text x="720" y="270" font-size="72" font-weight="bold">سوق.كوم</text>
+    <text x="720" y="330" font-size="30" opacity=".9">أحدث تشكيلة شنط وإكسسوارات أصلية</text>
+  </g>
+</svg>

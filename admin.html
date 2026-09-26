@@ -8,8 +8,6 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap');
-    
     * {
       margin: 0;
       padding: 0;
@@ -547,18 +545,22 @@
       }
     }
   </style>
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
   <!-- Header -->
   <header class="admin-header">
     <div class="flex items-center justify-between px-6 py-4">
       <div class="flex items-center gap-3">
-        <img src="https://cdn-icons-png.flaticon.com/512/1041/1041916.png" class="w-12 h-12" alt="شعار سوق.كوم">
+        <img src="assets/logo.svg" onerror="this.onerror=null;this.src='https://i.ibb.co/kgdfjxd9/Png.png'" class="w-12 h-12" alt="شعار سوق.كوم">
         <h1 class="text-2xl font-bold text-gray-800">لوحة الإدارة</h1>
       </div>
       <div class="flex items-center gap-3">
         <span class="text-sm text-gray-600" id="adminEmail"></span>
-        <a href="Index.html" class="bg-blue-600 text-white rounded-lg px-4 py-2 font-medium hover:bg-blue-700 transition">
+        <a href="index.html" class="bg-blue-600 text-white rounded-lg px-4 py-2 font-medium hover:bg-blue-700 transition">
           العودة للموقع <i class="fa fa-home mr-1"></i>
         </a>
       </div>
@@ -857,7 +859,7 @@
         });
         
         if (!response.ok) {
-          window.location.href = "Index.html";
+          window.location.href = "index.html";
           return;
         }
         
@@ -1350,7 +1352,7 @@
         }
 
         const images = (product.images || []).map(img =>
-          `<img src="${safeImageUrl(img)}" class="product-image" alt="صورة المنتج" onerror="this.src='https://via.placeholder.com/60x60?text=صورة'">`
+          `<img src="${safeImageUrl(img)}" class="product-image" alt="صورة المنتج" onerror="this.src='assets/hero.svg'">`
         ).join('');
 
         const tr = document.createElement('tr');
@@ -1724,11 +1726,11 @@
     }
 
      document.getElementById("logoutBtn").addEventListener("click", function () {
-    window.location.href = "admin2.html";
+    window.location.href = "admin-content.html";
   });
      document.getElementById("adminLogoutBtn")?.addEventListener("click", async function () {
     try { await apiFetch("/api/logout", { method: "POST" }); } catch {}
-    window.location.href = "Index.html";
+    window.location.href = "index.html";
   });
 
     // Search functionality (can be extended)

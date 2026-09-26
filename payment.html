@@ -7,10 +7,10 @@
   <script src="common.js"></script>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={theme:{extend:{fontFamily:{head:['Cairo','Tajawal','sans-serif'],body:['Tajawal','Cairo','sans-serif']}}}};</script>
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap');
     body {
       font-family: 'Tajawal', sans-serif;
       background: linear-gradient(120deg,#f8fafc 0%,#dbeafe 100%);
@@ -196,21 +196,32 @@
             .home-btn { right: 12px; top: 14px; font-size: 1.2rem; padding: 0.5rem 0.7rem;}
         }
     </style>
+
+  <meta name="description" content="سوق.كوم — متجر ليبي للشنط والإكسسوارات الأصلية.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="سوق.كوم">
+  <meta property="og:description" content="شنط وإكسسوارات أصلية — توصيل لكل ليبيا.">
+  <meta property="og:image" content="assets/og-cover.svg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="theme-color" content="#2563eb">
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;700;800&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css">
+  <link rel="stylesheet" href="site.css">
+
 </head>
-<body>
-    <a href="Index.html" class="home-btn" title="الصفحة الرئيسية"><i class="fas fa-home"></i></a>
+<body class="rtl-support font-body">
+    
   <!-- Header -->
-  <header>
-    <div class="gradient-header">
-      
-      إتمام الطلب والدفع
-    </div>
-  </header>
-  <main class="flex justify-center py-10 px-2">
-    <div class="main-card max-w-5xl w-full p-2 md:p-6">
-      <div class="flex main-content gap-10 md:gap-14 lg:gap-20">
-        <!-- Order Summary (Right on mobile, Left on desktop) -->
-        <div class="order-summary-col w-[44%] min-w-[300px] max-w-[420px] md:order-2">
+  <div id="site-header"></div>
+  <main id="main" class="container px-4 py-8">
+    <div class="bg-white rounded-3xl shadow-xl p-4 md:p-8 max-w-5xl mx-auto" data-aos="fade-up">
+      <h1 class="font-head text-2xl md:text-3xl font-extrabold text-center text-blue-900 mb-8"><i class="fas fa-lock ml-2"></i>إتمام الطلب والدفع</h1>
+      <div class="flex flex-col-reverse lg:flex-row gap-8">
+        <!-- Order Summary -->
+        <div class="w-full lg:w-[380px] shrink-0 order-1 lg:order-2">
           <div class="order-summary-card p-6">
             <div class="order-summary-title">
               <i class="fas fa-shopping-basket mr-2"></i>
@@ -223,8 +234,8 @@
             </div>
           </div>
         </div>
-        <!-- Delivery Form (Left on mobile, Right on desktop) -->
-        <div class="form-col flex-1 md:order-1">
+        <!-- Delivery Form -->
+        <div class="flex-1 min-w-0 order-2 lg:order-1">
           <div class="form-title">
             <i class="fas fa-map-marker-alt mr-1"></i>
             بيانات التوصيل
@@ -246,7 +257,7 @@
             <textarea name="notes" id="notes" placeholder="أي ملاحظات للتوصيل (اختياري)"></textarea>
             
             <label for="phone">رقم الهاتف <span class="text-red-600">*</span></label>
-            <input type="tel" name="phone" id="phone" required placeholder="09XXXXXXXX">
+            <input type="tel" name="phone" id="phone" required placeholder="09XXXXXXXX" inputmode="numeric" dir="ltr" autocomplete="tel">
             
             <button type="submit" id="submitOrderBtn" class="submit-btn mt-2">
               <i class="fas fa-check-circle"></i>
@@ -272,7 +283,7 @@
         renderCartSummary();
       } catch (err) {
         if (err && err.status === 401) {
-          window.location.href = "signUp.html";
+          window.location.href = "signup.html";
           return;
         }
         userCart = [];
@@ -350,7 +361,7 @@
         document.getElementById('orderSuccess').classList.remove('hidden');
         // السلة حُذفت في الباك اند داخل نفس المعاملة - لا حاجة لاستدعاء clear منفصل
         userCart = [];
-        setTimeout(() => { window.location.href = "Index.html"; }, 2600);
+        setTimeout(() => { window.location.href = "index.html"; }, 2600);
       } catch (err) {
         document.getElementById('orderError').textContent = apiErrorMessage(err, "حدث خطأ أثناء إرسال الطلب");
         document.getElementById('orderError').classList.remove('hidden');
@@ -359,5 +370,8 @@
       }
     });
   </script>
+<div id="site-footer"></div>
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>renderSharedShell("", {"search": false}); initAOS();</script>
 </body>
 </html>

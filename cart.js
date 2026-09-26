@@ -1,25 +1,23 @@
-// Cart.js — نسخة متوافقة مع الباك اند مع زر شراء الآن
+// cart.js — نسخة متوافقة مع الباك اند مع زر شراء الآن
 
 const cartModalHTML = `
-<!-- زر السلة في الهيدر -->
-<a href="#" id="cartBtn" class="text-gray-700 hover:text-blue-600 relative">
-    <i class="fas fa-shopping-cart text-xl"></i>
-    <span id="cartCount" class="absolute -top-2 -right-2 bg-blue-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">0</span>
+<a href="#" id="cartBtn" class="icon-btn relative" aria-label="سلة التسوق">
+    <i class="fas fa-shopping-cart"></i>
+    <span id="cartCount" class="absolute -top-1.5 -right-1.5 bg-blue-600 text-white text-[11px] font-bold rounded-full h-5 min-w-5 px-1 flex items-center justify-center">0</span>
 </a>
-<!-- نافذة السلة -->
-<div id="cartModal" class="fixed inset-0 modal-overlay flex items-center justify-center z-50 hidden">
-    <div class="bg-white rounded-lg p-8 w-full max-w-md relative">
-        <button id="closeCartBtn" class="absolute left-4 top-4 text-gray-500 hover:text-gray-700 text-xl">
+<div id="cartModal" class="fixed inset-0 modal-overlay hidden items-center justify-center z-[80] p-4" role="dialog" aria-modal="true" aria-labelledby="cartTitle">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-md relative shadow-2xl max-h-[88vh] overflow-y-auto">
+        <button id="closeCartBtn" class="icon-btn absolute left-4 top-4" aria-label="إغلاق السلة">
             <i class="fas fa-times"></i>
         </button>
-        <h3 class="text-2xl font-bold text-gray-800 mb-4 text-center">سلة التسوق</h3>
+        <h3 id="cartTitle" class="text-2xl font-extrabold font-head mb-4 text-center">سلة التسوق</h3>
         <div id="cartItems"></div>
         <div id="cartEmpty" class="text-center text-gray-500 my-6">السلة فارغة.</div>
         <div id="cartTotal" class="mt-6 font-bold text-blue-600 text-center"></div>
-        <button id="checkoutBtn" class="mt-6 w-full bg-green-600 text-white py-3 rounded-lg font-medium hover:bg-green-700 transition duration-300" style="display:none">
+        <button id="checkoutBtn" class="mt-6 w-full bg-green-600 text-white py-3 rounded-xl font-bold hover:bg-green-700 transition" style="display:none">
              شراء الآن
         </button>
-        <button id="closeCartBtnFooter" class="mt-4 w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition duration-300">إغلاق</button>
+        <button id="closeCartBtnFooter" class="mt-3 w-full primary-btn py-3 rounded-xl">إغلاق</button>
     </div>
 </div>
 `;
@@ -121,11 +119,16 @@ function showCart() {
         cartTotal.textContent = `الإجمالي: ${total} د.ل`;
         checkoutBtn.style.display = "block";
     }
-    document.getElementById('cartModal').classList.remove('hidden');
+    const modal = document.getElementById('cartModal');
+    modal.classList.remove('hidden'); modal.classList.add('flex');
+    document.documentElement.style.overflow = "hidden";
 }
 
 function closeCart() {
-    document.getElementById('cartModal').classList.add('hidden');
+    const modal = document.getElementById('cartModal');
+    if (!modal) return;
+    modal.classList.add('hidden'); modal.classList.remove('flex');
+    document.documentElement.style.overflow = "";
 }
 
 async function addToCart(productId, qty=1) {
@@ -215,17 +218,29 @@ async function clearCart() {
     }
 }
 
-// عند تحميل الصفحة: إضافة الزر والمودال وربط الأحداث
+// عند تحميل الصفحة: إضافة الزر والمودال وربط الأحداث (متوافق مع الهيدر الزجاجي)
 document.addEventListener('DOMContentLoaded', async function() {
-    const iconsDiv = document.querySelector("header .flex.items-center.space-x-4, header .flex.items-center.space-x-4.space-x-reverse");
-    if (iconsDiv) {
-        const oldCartBtn = iconsDiv.querySelector("#cartBtn");
-        if (oldCartBtn) oldCartBtn.remove();
-        iconsDiv.insertAdjacentHTML('beforeend', cartModalHTML.split('<!-- نافذة السلة -->')[0]);
-    }
-    const oldModal = document.getElementById("cartModal");
-    if (oldModal) oldModal.remove();
-    document.body.insertAdjacentHTML('beforeend', cartModalHTML.split('<!-- نافذة السلة -->')[1]);
+    const mountCartUI = () => {
+        // زر السلة → فتحة الهيدر الجديد أو الهيدر القديم
+        const slot = document.getElementById("cartSlot");
+        const iconsDiv = document.querySelector("header .flex.items-center.space-x-4, header .flex.items-center.space-x-4.space-x-reverse");
+        const tpl = document.createElement("template");
+        tpl.innerHTML = cartModalHTML;
+        const btnNode = tpl.content.querySelector("#cartBtn");
+        const modalNode = tpl.content.querySelector("#cartModal");
+        if (slot && btnNode && !document.getElementById("cartBtn")) {
+            slot.appendChild(btnNode);
+        } else if (iconsDiv && btnNode && !document.getElementById("cartBtn")) {
+            iconsDiv.appendChild(btnNode);
+        }
+        if (modalNode && !document.getElementById("cartModal")) {
+            document.body.appendChild(modalNode);
+        }
+        return !!document.getElementById("cartBtn");
+    };
+    mountCartUI();
+    setTimeout(mountCartUI, 400); // بعد بناء الهيدر المشترك
+    setTimeout(mountCartUI, 1500);
     await fetchCart();
 
     const cartBtn = document.getElementById('cartBtn');

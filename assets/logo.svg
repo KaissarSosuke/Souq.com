@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2563eb"/>
+      <stop offset="1" stop-color="#7c3aed"/>
+    </linearGradient>
+  </defs>
+  <rect x="4" y="4" width="56" height="56" rx="14" fill="url(#g)"/>
+  <g fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M20 26h24l-2.2 14.5a3 3 0 0 1-3 2.5H25.2a3 3 0 0 1-3-2.5L20 26z"/>
+    <path d="M24 26v-3.5a8 8 0 0 1 16 0V26"/>
+  </g>
+  <circle cx="46" cy="20" r="6" fill="#fbeed3"/>
+  <text x="46" y="24" text-anchor="middle" font-size="8" font-weight="bold" fill="#2563eb" font-family="sans-serif">س</text>
+</svg>

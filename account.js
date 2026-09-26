@@ -25,7 +25,7 @@ const loginModalHTML = `
     </form>
     <div class="mt-4 text-center">
       <p class="text-gray-600">ليس لديك حساب؟
-        <a href="signUp.html" class="text-blue-600 hover:underline">إنشاء حساب</a>
+        <a href="signup.html" class="text-blue-600 hover:underline">إنشاء حساب</a>
       </p>
     </div>
   </div>
@@ -139,44 +139,36 @@ function showLoginSuccess(msg) {
   document.getElementById('loginError').classList.add('hidden');
 }
 
-// الأيقونات
+// الأيقونات — تعمل مع الهيدر الزجاجي الجديد (#userIconWrap) والهيدر القديم
+function userWrap() {
+  return document.getElementById("userIconWrap") || document.querySelector(".fa-user")?.parentElement || null;
+}
 function setUserIconLoggedIn() {
-  const iconEl = document.querySelector('.fa-user');
-  if (iconEl) {
-    if (iconEl.dataset.loggedIn === "1") return;
-    iconEl.dataset.loggedIn = "1";
-    iconEl.classList.remove('fa-user');
-    iconEl.innerHTML = '';
-    const img = document.createElement('img');
-    img.src = 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Default_pfp.svg/2048px-Default_pfp.svg.png';
-    img.alt = 'صورة المستخدم';
-    img.style.width = '32px';
-    img.style.height = '32px';
-    img.style.borderRadius = '50%';
-    img.classList.add('user-icon-img');
-    iconEl.appendChild(img);
-  }
+  const wrap = userWrap();
+  if (!wrap) return;
+  if (wrap.dataset.loggedIn === "1") return;
+  wrap.dataset.loggedIn = "1";
+  wrap.innerHTML = '';
+  const img = document.createElement('img');
+  img.src = 'assets/logo.svg';
+  img.onerror = function() { this.onerror = null; this.src = 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Default_pfp.svg/2048px-Default_pfp.svg.png'; };
+  img.alt = 'حسابي';
+  img.style.width = '26px';
+  img.style.height = '26px';
+  img.style.borderRadius = '50%';
+  img.classList.add('user-icon-img');
+  wrap.appendChild(img);
 }
 function restoreUserIconDefault() {
-  const iconEl = document.querySelector('[data-logged-in="1"]');
+  const wrap = document.querySelector('[data-logged-in="1"]') || userWrap();
   const img = document.querySelector('.user-icon-img');
   if (img) img.remove();
-  if (iconEl) {
-    delete iconEl.dataset.loggedIn;
-    iconEl.classList.add('fa-user');
-    if (!iconEl.querySelector('i,img,svg')) {
+  if (wrap) {
+    delete wrap.dataset.loggedIn;
+    if (!wrap.querySelector('i,img,svg')) {
       const i = document.createElement('i');
-      i.className = 'fas fa-user text-2xl';
-      // حافظ على حجم الأيقونة الأصلية إن وجد
-      iconEl.appendChild(i);
-    }
-  } else if (img) {
-    const parent = img.parentElement;
-    img.remove();
-    if (parent) {
-      const i = document.createElement('i');
-      i.className = 'fas fa-user text-2xl';
-      parent.appendChild(i);
+      i.className = 'fas fa-user';
+      wrap.appendChild(i);
     }
   }
 }
@@ -194,7 +186,7 @@ async function logoutHandler() {
   hideDropdown();
   dropdownEl = null;
   removeAdminPanelBtn();
-  window.location.href = "Index.html";
+  window.location.href = "index.html";
 }
 
 // فحص حالة تسجيل الدخول عند التحميل
@@ -237,18 +229,31 @@ async function checkIfAdmin() {
 
 // بدء التشغيل
 document.addEventListener('DOMContentLoaded', () => {
-  document.body.insertAdjacentHTML('beforeend', loginModalHTML);
+  if (!document.getElementById("loginModal")) document.body.insertAdjacentHTML('beforeend', loginModalHTML);
   document.getElementById('closeLoginModalBtn')?.addEventListener('click', closeLoginModal);
   document.getElementById('loginForm')?.addEventListener('submit', loginHandler);
-  const iconEl = document.querySelector('.fa-user');
-  userIconWrapper = iconEl ? iconEl.parentElement : null;
-  if (userIconWrapper) {
-    userIconWrapper.addEventListener('click', (e) => {
-      e.stopPropagation();
-      if (isAuthenticated) toggleDropdown();
-      else openLoginModal();
-    });
-  }
+  // انتظر الهيدر المشترك (يُبنى من common.js) ثم اربط الأيقونة
+  const bindIcon = () => {
+    const wrap = document.getElementById("userIconWrap") || document.querySelector('.fa-user')?.parentElement;
+    if (!wrap) return false;
+    userIconWrapper = wrap;
+    if (!wrap.dataset.accountBound) {
+      wrap.dataset.accountBound = "1";
+      wrap.addEventListener('click', (e) => {
+        e.preventDefault(); e.stopPropagation();
+        if (isAuthenticated) toggleDropdown();
+        else openLoginModal();
+      });
+    }
+    return true;
+  };
+  bindIcon();
+  // أعد المحاولة بعد بناء الهيدر + راقب الحقن المتأخر
+  setTimeout(bindIcon, 300);
+  setTimeout(bindIcon, 1200);
+  const obs = new MutationObserver(() => { if (bindIcon()) obs.disconnect(); });
+  obs.observe(document.body, { childList: true, subtree: true });
+  setTimeout(() => obs.disconnect(), 5000);
   document.addEventListener('click', (e) => {
     if (isAuthenticated && dropdownEl && !dropdownEl.classList.contains("hidden")) {
       if (!dropdownEl.contains(e.target) && !userIconWrapper.contains(e.target)) {
